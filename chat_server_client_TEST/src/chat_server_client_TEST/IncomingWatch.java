@@ -16,12 +16,12 @@ public class IncomingWatch implements Runnable {
 				BufferedReader incomingBuffer = new BufferedReader(incomingMessages)) {
 			
 			outgoingMessages.println("listening");
-			String result = incomingBuffer.readLine();
-			while (!result.equals("83530398293485893853495830")) {
+			String result = null;
+			while (!(result = incomingBuffer.readLine()).equals("5449815165132468")) {
 				System.out.println(result);
-				result = incomingBuffer.readLine();
+				result.toString();
 			}
-		} catch (IOException e) {
+		} catch (IOException | NullPointerException e) {
 			e.printStackTrace();
 		}
 	}

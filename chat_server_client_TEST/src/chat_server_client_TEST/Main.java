@@ -8,44 +8,27 @@ import java.net.Socket;
 
 public class Main {
 
-	public static void main(String[] args) {
-		try (Socket sock = new Socket("localhost", 4225);
-				PrintStream outgoingMessages = new PrintStream(sock.getOutputStream());
-				InputStreamReader incomingMessages = new InputStreamReader(sock.getInputStream());
-				BufferedReader incomingBuffer = new BufferedReader(incomingMessages);
-				InputStreamReader keyboardInput = new InputStreamReader(System.in);
-				BufferedReader keyboardBuffer = new BufferedReader(keyboardInput)) {
-			System.out.print("Username: ");
-			String username = keyboardBuffer.readLine();
-			System.out.print("Password: ");
-			String password = keyboardBuffer.readLine();
-			
-			outgoingMessages.println(username + ":" + password);
-			String result = incomingBuffer.readLine();
-			boolean isLoggedIn = Boolean.parseBoolean(result);
-			
-			if (isLoggedIn) {
-				chat(username);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public static void main(String[] args) throws IOException {
+		Thread readThread = new Thread(new IncomingWatch());
+		readThread.start();
+		chat("Anon");
 	}
 
 	private static void chat(String username) {
-		try (Socket sock = new Socket("localhost", 4230);
-				PrintStream outgoingMessages = new PrintStream(sock.getOutputStream());
-				InputStreamReader incomingMessages = new InputStreamReader(sock.getInputStream());
-				BufferedReader incomingBuffer = new BufferedReader(incomingMessages);
-				InputStreamReader keyboardInput = new InputStreamReader(System.in);
+		try (InputStreamReader keyboardInput = new InputStreamReader(System.in);
 				BufferedReader keyboardBuffer = new BufferedReader(keyboardInput)) {
-			System.out.print(" : ");
-			String message = keyboardBuffer.readLine();
-			
-			while ((message = keyboardBuffer.readLine()) != null) {
-				outgoingMessages.println(username + " : " + message);
+			System.out.println("Begin Chat:");
+			String message = null;
+			while (!(message = keyboardBuffer.readLine()).equals("EXIT")) {
+				try (Socket sock = new Socket("localhost", 4230);
+						PrintStream outgoingMessages = new PrintStream(sock.getOutputStream());
+						InputStreamReader incomingMessages = new InputStreamReader(sock.getInputStream());
+						BufferedReader incomingBuffer = new BufferedReader(incomingMessages)) {
+					outgoingMessages.println(username + " : " + message);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

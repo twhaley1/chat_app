@@ -30,11 +30,15 @@ public abstract class Server implements Runnable {
 		this.server = new ServerSocket(this.port);
 		while (!this.server.isClosed()) {
 			Socket client = this.server.accept();
-			this.handle(client);
+			try {
+				this.handle(client);
+			} catch (IOException e) {
+				System.err.println(client.getInetAddress() + " could not connect.");
+			}
 		}
 	}
 	
-	protected abstract void handle(Socket client);
+	protected abstract void handle(Socket client) throws IOException;
 	
 	protected void execute(Runnable task) {
 		this.pool.execute(task);
