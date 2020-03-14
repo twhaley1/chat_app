@@ -22,10 +22,32 @@ public class Main {
 			
 			outgoingMessages.println(username + ":" + password);
 			String result = incomingBuffer.readLine();
-			System.out.println("Login Successful? " + result);
+			boolean isLoggedIn = Boolean.parseBoolean(result);
+			
+			if (isLoggedIn) {
+				chat(username);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	private static void chat(String username) {
+		try (Socket sock = new Socket("localhost", 4230);
+				PrintStream outgoingMessages = new PrintStream(sock.getOutputStream());
+				InputStreamReader incomingMessages = new InputStreamReader(sock.getInputStream());
+				BufferedReader incomingBuffer = new BufferedReader(incomingMessages);
+				InputStreamReader keyboardInput = new InputStreamReader(System.in);
+				BufferedReader keyboardBuffer = new BufferedReader(keyboardInput)) {
+			System.out.print(" : ");
+			String message = keyboardBuffer.readLine();
+			
+			while ((message = keyboardBuffer.readLine()) != null) {
+				outgoingMessages.println(username + " : " + message);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
