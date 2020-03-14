@@ -1,4 +1,4 @@
-package chat_server_client_TEST;
+package application.model.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,7 +6,16 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 
-public class IncomingWatch implements Runnable {
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
+public class MessageListener implements Runnable {
+
+	private StringProperty message;
+	
+	public MessageListener() {
+		this.message = new SimpleStringProperty();
+	}
 	
 	@Override
 	public void run() {
@@ -18,12 +27,15 @@ public class IncomingWatch implements Runnable {
 			outgoingMessages.println("listening");
 			String result = null;
 			while (!(result = incomingBuffer.readLine()).equals("5449815165132468")) {
-				System.out.println(result);
-				result.toString();
+				this.message.setValue(result);
 			}
 		} catch (IOException | NullPointerException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public StringProperty messageProperty() {
+		return this.message;
 	}
 
 }
