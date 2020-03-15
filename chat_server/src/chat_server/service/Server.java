@@ -14,7 +14,7 @@ public abstract class Server implements Runnable {
 	
 	protected Server(int port) {
 		this.port = port;
-		this.pool = Executors.newFixedThreadPool(6);
+		this.pool = Executors.newFixedThreadPool(10);
 	}
 	
 	@Override

@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Queue;
 
+import chat_server.data.Message;
 import chat_server.service.Server;
 
 public class IncomingMessageServer extends Server {
 
-	private Queue<String> buffer;
+	private Queue<Message> buffer;
 	
-	public IncomingMessageServer(int port, Queue<String> buffer) {
+	public IncomingMessageServer(int port, Queue<Message> buffer) {
 		super(port);
 		this.buffer = buffer;
 	}

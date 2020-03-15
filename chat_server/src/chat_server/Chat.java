@@ -3,6 +3,7 @@ package chat_server;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import chat_server.data.Message;
 import chat_server.service.Server;
 import chat_server.service.incoming.IncomingMessageServer;
 import chat_server.service.outgoing.OutgoingMessageServer;
@@ -19,7 +20,7 @@ public class Chat {
 	
 	public Chat(String title, int incomingPort, int outgoingPort) {
 		this.title = title;
-		Queue<String> messageBuffer = new LinkedList<String>();
+		Queue<Message> messageBuffer = new LinkedList<Message>();
 		this.incoming = new IncomingMessageServer(incomingPort, messageBuffer);
 		this.outgoing = new OutgoingMessageServer(outgoingPort, messageBuffer);
 		this.incomingThread = new Thread(this.incoming);

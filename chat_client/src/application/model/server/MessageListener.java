@@ -17,16 +17,18 @@ public class MessageListener implements Runnable {
 	private StringProperty message;
 	private ObjectProperty<Exception> error;
 	
+	private String username;
 	private Socket sock;
 	private PrintStream outgoingMessages;
 	private BufferedReader incomingBuffer;
 	
 	private boolean isListening;
 	
-	public MessageListener() throws UnknownHostException, IOException {
+	public MessageListener(String username) throws UnknownHostException, IOException {
 		this.message = new SimpleStringProperty();
 		this.error = new SimpleObjectProperty<Exception>();
 		this.isListening = false;
+		this.username = username;
 		
 		this.sock = new Socket("localhost", 4235);
 		this.outgoingMessages = new PrintStream(sock.getOutputStream());
@@ -36,7 +38,7 @@ public class MessageListener implements Runnable {
 	@Override
 	public void run() {
 		this.isListening = true;
-		this.outgoingMessages.println();
+		this.outgoingMessages.println(this.username);
 		while (this.isListening) {
 			try {
 				String result = this.incomingBuffer.readLine();

@@ -36,7 +36,7 @@ public final class ViewModel {
 	}
 	
 	public void makeConnection() throws UnknownHostException, IOException {
-		this.listener = new MessageListener();
+		this.listener = new MessageListener(this.usernameProperty.getValue());
 		listener.messageProperty().addListener((observable, oldValue, newValue) -> {
 			String previous = this.chatProperty.getValue() + System.lineSeparator();
 			this.chatProperty.setValue(previous + newValue);
@@ -50,7 +50,10 @@ public final class ViewModel {
 				PrintStream outgoingMessages = new PrintStream(sock.getOutputStream());
 				InputStreamReader incomingMessages = new InputStreamReader(sock.getInputStream());
 				BufferedReader incomingBuffer = new BufferedReader(incomingMessages)) {
-			outgoingMessages.println(this.usernameProperty.getValue() + " : " + this.inputProperty.getValue());
+			String message = this.usernameProperty.getValue() + ":" 
+				+ this.inputProperty.getValue().replaceAll(System.lineSeparator(), "") + ":" 
+				+ System.currentTimeMillis();
+			outgoingMessages.println(message);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

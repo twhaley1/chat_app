@@ -5,38 +5,49 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 
+import chat_server.data.Message;
 import chat_server.service.Server;
 
 public class OutgoingMessageServer extends Server {
 
-	private Queue<String> buffer;
-	private Collection<PrintStream> room;
-	private MessageSendingService service;
+	private Queue<Message> buffer;
+	private Map<String, PrintStream> room;
+	private Map<String, Long> tracker;
+	private MessageSendingService messageService;
+	private UserTrackingService trackingService;
 	
-	public OutgoingMessageServer(int port, Queue<String> buffer) {
+	public OutgoingMessageServer(int port, Queue<Message> buffer) {
 		super(port);
 		this.buffer = buffer;
-		this.room = Collections.synchronizedCollection(new ArrayList<PrintStream>());
-		this.service = new MessageSendingService(this.room, this.buffer);
-		this.execute(this.service);
+		this.room = Collections.synchronizedMap(new HashMap<String, PrintStream>());
+		this.tracker = Collections.synchronizedMap(new HashMap<String, Long>());
+		this.messageService = new MessageSendingService(this.room, this.tracker, this.buffer);
+		this.trackingService = new UserTrackingService(this.room, this.tracker);
+		this.execute(this.messageService);
+		this.execute(this.trackingService);
 	}
 
 	@Override
 	protected void handle(Socket client) throws IOException {
-		new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
-		this.room.add(new PrintStream(client.getOutputStream()));
+		String username = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
+		synchronized (this.room) {
+			this.room.put(username, new PrintStream(client.getOutputStream()));
+		}
+		synchronized (this.tracker) {
+			this.tracker.put(username, System.currentTimeMillis());
+		}
 	}
 
 	@Override
 	public void close() {
 		super.close();
-		this.service.shutdown();
-		for (PrintStream client : this.room) {
+		this.messageService.shutdown();
+		for (PrintStream client : this.room.values()) {
 			client.close();
 		}
 	}

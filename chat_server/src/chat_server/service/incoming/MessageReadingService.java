@@ -7,12 +7,14 @@ import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Queue;
 
+import chat_server.data.Message;
+
 public class MessageReadingService implements Runnable {
 
 	private Socket client;
-	private Queue<String> buffer;
+	private Queue<Message> buffer;
 	
-	public MessageReadingService(Socket client, Queue<String> buffer) {
+	public MessageReadingService(Socket client, Queue<Message> buffer) {
 		this.client = client;
 		this.buffer = buffer;
 	}
@@ -23,8 +25,9 @@ public class MessageReadingService implements Runnable {
 				PrintStream outgoingMessages = new PrintStream(this.client.getOutputStream());
 				BufferedReader buffer = new BufferedReader(incomingMessages)) {
 			String message = buffer.readLine();
+			String[] contents = message.split(":");
 			synchronized (this.buffer) {
-				this.buffer.add(message);
+				this.buffer.add(new Message(contents[0], contents[1], Long.parseLong(contents[2])));
 				this.buffer.wait();
 			}
 			this.client.close();
