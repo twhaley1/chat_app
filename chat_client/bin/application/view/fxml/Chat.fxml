@@ -9,11 +9,10 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
 <AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.ChatController">
    <children>
       <Label fx:id="usernameLabel" layoutX="21.0" layoutY="14.0" text="Username: " AnchorPane.leftAnchor="21.0" AnchorPane.topAnchor="14.0" />
-      <TextField fx:id="usernameTextField" layoutX="84.0" layoutY="9.0" AnchorPane.leftAnchor="84.0" AnchorPane.topAnchor="9.0" />
+      <TextField fx:id="usernameTextField" layoutX="97.0" layoutY="9.0" onKeyPressed="#usernameOnKeyPressed" AnchorPane.leftAnchor="97.0" AnchorPane.topAnchor="9.0" />
       <HBox fx:id="loginDisplayBox" alignment="CENTER_RIGHT" layoutX="368.0" layoutY="4.0" AnchorPane.rightAnchor="20.5" AnchorPane.topAnchor="4.0">
          <children>
             <Label text="Logged in as: ">
@@ -40,6 +39,6 @@
             <Insets bottom="10.0" left="20.0" right="20.0" />
          </padding>
       </VBox>
-      <Button fx:id="joinButton" layoutX="253.0" layoutY="9.0" mnemonicParsing="false" onAction="#onJoinButtonAction" text="JOIN" />
+      <Button fx:id="joinButton" layoutX="277.0" layoutY="9.0" mnemonicParsing="false" onAction="#onJoinButtonAction" text="Enter" AnchorPane.leftAnchor="277.0" AnchorPane.topAnchor="9.0" />
    </children>
 </AnchorPane>

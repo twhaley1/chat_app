@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 import application.model.server.MessageListener;
 import javafx.beans.property.SimpleStringProperty;
@@ -25,21 +26,23 @@ public final class ViewModel {
 	private StringProperty chatProperty;
 	private StringProperty inputProperty;
 	
+	private MessageListener listener;
+	private Thread listeningThread;
+	
 	private ViewModel() {
-		
 		this.usernameProperty = new SimpleStringProperty();
 		this.chatProperty = new SimpleStringProperty("");
 		this.inputProperty = new SimpleStringProperty();
 	}
 	
-	public void makeConnection() {
-		MessageListener listener = new MessageListener();
+	public void makeConnection() throws UnknownHostException, IOException {
+		this.listener = new MessageListener();
 		listener.messageProperty().addListener((observable, oldValue, newValue) -> {
 			String previous = this.chatProperty.getValue() + System.lineSeparator();
 			this.chatProperty.setValue(previous + newValue);
 		});
-		Thread connectionThread = new Thread(listener);
-		connectionThread.start();
+		this.listeningThread = new Thread(listener);
+		this.listeningThread.start();
 	}
 	
 	public void send() {
@@ -50,6 +53,13 @@ public final class ViewModel {
 			outgoingMessages.println(this.usernameProperty.getValue() + " : " + this.inputProperty.getValue());
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void stop() throws InterruptedException {
+		if (this.listener != null) {
+			this.listener.shutdown();
+			this.listeningThread.join();
 		}
 	}
 	

@@ -3,6 +3,7 @@ package application;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import application.view.ViewModel;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
@@ -11,6 +12,7 @@ import javafx.scene.layout.Pane;
 
 
 public class Main extends Application {
+	
 	@Override
 	public void start(Stage primaryStage) {
 		try {
@@ -26,6 +28,12 @@ public class Main extends Application {
 		}
 	}
 	
+	@Override
+	public void stop() throws Exception {
+		super.stop();
+		ViewModel.get().stop();
+	}
+
 	public static void main(String[] args) {
 		launch(args);
 	}
