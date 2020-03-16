@@ -9,11 +9,11 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import chat_server.service.outgoing.UserTrackingService;
+import chat_server.service.outgoing.TimeoutService;
 
 public class TestRun {
 
-	private class TestUserTrackingService extends UserTrackingService {
+	private class TestUserTrackingService extends TimeoutService {
 
 		private int count;
 		
@@ -56,7 +56,7 @@ public class TestRun {
 		Map<String, Long> tracker = new HashMap<String, Long>();
 		tracker.put("twhal", 0L);
 		
-		UserTrackingService service = new TestNotTimeToCheckUserTrackingService(clients, tracker, Long.MAX_VALUE);
+		TimeoutService service = new TestNotTimeToCheckUserTrackingService(clients, tracker, Long.MAX_VALUE);
 		service.run();
 		
 		assertEquals(1, clients.size());
@@ -69,7 +69,7 @@ public class TestRun {
 		Map<String, Long> tracker = new HashMap<String, Long>();
 		tracker.put("twhal", 0L);
 		
-		UserTrackingService service = new TestUserTrackingService(clients, tracker, 0);
+		TimeoutService service = new TestUserTrackingService(clients, tracker, 0);
 		service.run();
 		
 		assertEquals(0, clients.size());
@@ -82,7 +82,7 @@ public class TestRun {
 		Map<String, Long> tracker = new HashMap<String, Long>();
 		tracker.put("twhal", 0L);
 		
-		UserTrackingService service = new TestUserTrackingService(clients, tracker, Long.MAX_VALUE);
+		TimeoutService service = new TestUserTrackingService(clients, tracker, Long.MAX_VALUE);
 		service.run();
 		
 		assertEquals(1, clients.size());

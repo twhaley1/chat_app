@@ -33,8 +33,8 @@ public class TestRun {
 		}
 
 		@Override
-		protected void clearBuffer() {
-			super.clearBuffer();
+		protected void dequeueMessages() {
+			super.dequeueMessages();
 			this.count++;
 		}
 		

@@ -3,7 +3,7 @@ package chat_server.service.outgoing;
 import java.io.PrintStream;
 import java.util.Map;
 
-public class UserTrackingService implements Runnable {
+public class TimeoutService implements Runnable {
 
 	public static final int TIMEOUT_ONE_MINUTE = 60000;
 	private static final int THIRTY_SECONDS = 30000;
@@ -14,7 +14,7 @@ public class UserTrackingService implements Runnable {
 	
 	private volatile boolean isRunning;
 	
-	public UserTrackingService(Map<String, PrintStream> clients, Map<String, Long> tracker, long timeoutIntervalMs) {
+	public TimeoutService(Map<String, PrintStream> clients, Map<String, Long> tracker, long timeoutIntervalMs) {
 		if (clients == null) {
 			throw new IllegalArgumentException("clients should not be null");
 		}
@@ -48,25 +48,21 @@ public class UserTrackingService implements Runnable {
 		return elapsedTimeSinceStart >= THIRTY_SECONDS;
 	}
 	
-	protected void checkTrackerForTimeouts(long currentTime) {
-		this.getClientTracker().forEach((username, timestamp) -> {
-			long timeSinceLastMessage = currentTime - timestamp;
-			if (timeSinceLastMessage >= this.timeoutIntervalMs) {
-				this.untrack(username);
-			}
-		}); 
+	private void checkTrackerForTimeouts(long currentTime) {
+		synchronized (this.tracker) {
+			this.tracker.forEach((username, timestamp) -> {
+				long timeSinceLastMessage = currentTime - timestamp;
+				if (timeSinceLastMessage >= this.timeoutIntervalMs) {
+					this.untrack(username);
+				}
+			}); 
+		}
 	}
 	
-	protected void untrack(String username) {
-		this.getClientStreams().remove(username);
-	}
-	
-	protected final Map<String, PrintStream> getClientStreams() {
-		return this.clients;
-	}
-	
-	protected final Map<String, Long> getClientTracker() {
-		return this.tracker;
+	private void untrack(String username) {
+		synchronized (this.clients) {
+			this.clients.remove(username);
+		}
 	}
 
 	public boolean isRunning() {

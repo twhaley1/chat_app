@@ -23,7 +23,7 @@ public class IncomingMessageServer extends Server {
 
 	@Override
 	protected void handle(Streamable client) throws IOException {
-		this.execute(new ThreadSafeMessageReadingService(client, this.buffer));
+		this.execute(new WaitingMessageReadingService(client, this.buffer));
 	}
 
 }

@@ -5,9 +5,9 @@ import java.util.Queue;
 import chat_server.data.Message;
 import chat_server.socket.Streamable;
 
-public class ThreadSafeMessageReadingService extends MessageReadingService {
+public class WaitingMessageReadingService extends MessageReadingService {
 
-	public ThreadSafeMessageReadingService(Streamable client, Queue<Message> buffer) {
+	public WaitingMessageReadingService(Streamable client, Queue<Message> buffer) {
 		super(client, buffer);
 	}
 
@@ -19,5 +19,4 @@ public class ThreadSafeMessageReadingService extends MessageReadingService {
 		}
 	}
 
-	
 }

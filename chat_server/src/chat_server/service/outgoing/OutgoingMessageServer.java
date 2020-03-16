@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class OutgoingMessageServer extends Server {
 	private Map<String, Long> tracker;
 	
 	private MessageSendingService messageService;
-	private UserTrackingService trackingService;
+	private TimeoutService trackingService;
 	
 	public OutgoingMessageServer(Connectable endpoint, Queue<Message> buffer) {
 		super(endpoint, Runtime.getRuntime().availableProcessors());
@@ -30,12 +31,11 @@ public class OutgoingMessageServer extends Server {
 		}
 		
 		this.buffer = buffer;
-		
 		this.room = Collections.synchronizedMap(new HashMap<String, PrintStream>());
 		this.tracker = Collections.synchronizedMap(new HashMap<String, Long>());
 		
-		this.messageService = new ThreadSafeMessageSendingService(this.room, this.tracker, this.buffer);
-		this.trackingService = new ThreadSafeUserTrackingService(this.room, this.tracker, UserTrackingService.TIMEOUT_ONE_MINUTE);
+		this.messageService = new NotifyingMessageSendingService(this.room, this.tracker, this.buffer);
+		this.trackingService = new TimeoutService(this.room, this.tracker, TimeoutService.TIMEOUT_ONE_MINUTE);
 		
 		this.execute(this.messageService);
 		this.execute(this.trackingService);
@@ -54,10 +54,19 @@ public class OutgoingMessageServer extends Server {
 
 	@Override
 	public void close() {
-		super.close();
 		this.messageService.shutdown();
+		this.trackingService.shutdown();
 		for (PrintStream client : this.room.values()) {
 			client.close();
 		}
+		super.close();
+	}
+	
+	public Collection<String> getUsernamesInRoom() {
+		return Collections.unmodifiableCollection(this.room.keySet());
+	}
+	
+	public Collection<String> getTrackedUsernames() {
+		return Collections.unmodifiableCollection(this.tracker.keySet());
 	}
 }

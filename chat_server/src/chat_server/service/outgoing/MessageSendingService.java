@@ -37,7 +37,7 @@ public class MessageSendingService implements Runnable {
 		this.isRunning = true;
 		while (this.isRunning()) {
 			if (this.containsMessages()) {
-				this.clearBuffer();
+				this.dequeueMessages();
 			}
 		}
 	}
@@ -47,12 +47,14 @@ public class MessageSendingService implements Runnable {
 	}
 	
 	public boolean containsMessages() {
-		return !this.getBuffer().isEmpty();
+		synchronized (this.buffer) {
+			return !this.buffer.isEmpty();
+		}
 	}
 	
-	protected void clearBuffer() {
+	protected void dequeueMessages() {
 		while (this.containsMessages()) {
-			Message message = this.getBuffer().remove();
+			Message message = this.buffer.remove();
 			if (message != null) {
 				this.assignTrackingTimestamp(message);
 				this.sendMessageToClients(message);
@@ -60,26 +62,22 @@ public class MessageSendingService implements Runnable {
 		}
 	}
 	
-	protected void assignTrackingTimestamp(Message message) {
-		this.getClientTracker().put(message.getUsername(), message.getTimestamp());
-	}
-	
-	protected void sendMessageToClients(Message message) {
-		for (PrintStream client : this.getClientStreams().values()) {
-			client.println(message.getUsername() + ": " + message.getContent());
-		}
-	}
-	
 	protected final Queue<Message> getBuffer() {
 		return this.buffer;
 	}
 	
-	protected final Map<String, PrintStream> getClientStreams() {
-		return this.clients;
+	private void assignTrackingTimestamp(Message message) {
+		synchronized (this.tracker) {
+			this.tracker.put(message.getUsername(), message.getTimestamp());
+		}
 	}
 	
-	protected final Map<String, Long> getClientTracker() {
-		return this.tracker;
+	private void sendMessageToClients(Message message) {
+		synchronized (this.clients) {
+			for (PrintStream client : this.clients.values()) {
+				client.println(message.getUsername() + ": " + message.getContent());
+			}
+		}
 	}
 	
 	public void shutdown() {
