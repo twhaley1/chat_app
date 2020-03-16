@@ -19,6 +19,7 @@ public class OutgoingMessageServer extends Server {
 	private Queue<Message> buffer;
 	private Map<String, PrintStream> room;
 	private Map<String, Long> tracker;
+	
 	private MessageSendingService messageService;
 	private UserTrackingService trackingService;
 	
@@ -34,7 +35,7 @@ public class OutgoingMessageServer extends Server {
 		this.tracker = Collections.synchronizedMap(new HashMap<String, Long>());
 		
 		this.messageService = new ThreadSafeMessageSendingService(this.room, this.tracker, this.buffer);
-		this.trackingService = new UserTrackingService(this.room, this.tracker);
+		this.trackingService = new ThreadSafeUserTrackingService(this.room, this.tracker, UserTrackingService.TIMEOUT_ONE_MINUTE);
 		
 		this.execute(this.messageService);
 		this.execute(this.trackingService);
