@@ -1,24 +1,31 @@
 package chat_server.service;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import chat_server.serversocket.Connectable;
+import chat_server.socket.Streamable;
 
 public abstract class Server implements Runnable {
 	
 	private ExecutorService pool;
-	private ServerSocket server;
-	private int port;
+	private Connectable serverEndpoint;
 	
-	protected Server(int port) {
-		this.port = port;
-		this.pool = Executors.newFixedThreadPool(10);
+	protected Server(Connectable serverEndpoint, int numberOfThreads) {
+		if (serverEndpoint == null) {
+			throw new IllegalArgumentException("server endpoint should not be null");
+		}
+		if (numberOfThreads < 1) {
+			throw new IllegalArgumentException("number of threads should not be less than one");
+		}
+		
+		this.pool = Executors.newFixedThreadPool(numberOfThreads);
+		this.serverEndpoint = serverEndpoint;
 	}
 	
 	@Override
-	public void run() {
+	public final void run() {
 		try {
 			this.start();
 		} catch (IOException e) {
@@ -26,19 +33,18 @@ public abstract class Server implements Runnable {
 		}
 	}
 
-	public void start() throws IOException {
-		this.server = new ServerSocket(this.port);
-		while (!this.server.isClosed()) {
-			Socket client = this.server.accept();
+	private void start() throws IOException {
+		while (!this.serverEndpoint.isClosed()) {
+			Streamable clientEndpoint = this.serverEndpoint.accept();
 			try {
-				this.handle(client);
+				this.handle(clientEndpoint);
 			} catch (IOException e) {
-				System.err.println(client.getInetAddress() + " could not connect.");
+				System.err.println(clientEndpoint.getInetAddress() + ": Client Endpoint Closed.");
 			}
 		}
 	}
 	
-	protected abstract void handle(Socket client) throws IOException;
+	protected abstract void handle(Streamable client) throws IOException;
 	
 	protected void execute(Runnable task) {
 		this.pool.execute(task);
@@ -46,12 +52,15 @@ public abstract class Server implements Runnable {
 	
 	public void close() {
 		try {
-			this.server.close();
+			this.serverEndpoint.close();
 			this.pool.shutdown();
 		} catch (IOException e) {
-			e.printStackTrace();
-			System.err.println("An error occurred when trying to close the server.");
+			System.err.println("An IOException Was Thrown When Closing Down A Server.");
+			System.err.println("Log: " + e.getMessage());
 		}
 	}
 	
+	public final boolean isClosed() {
+		return this.serverEndpoint.isClosed();
+	}
 }
