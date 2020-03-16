@@ -16,6 +16,16 @@ public class MessageSendingService implements Runnable {
 	private volatile boolean isRunning;
 	
 	public MessageSendingService(Map<String, PrintStream> clients, Map<String, Long> tracker, Queue<Message> buffer) {
+		if (clients == null) {
+			throw new IllegalArgumentException("clients should not be null");
+		}
+		if (tracker == null) {
+			throw new IllegalArgumentException("tracker should not be null");
+		}
+		if (buffer == null) {
+			throw new IllegalArgumentException("buffer should not be null");
+		}
+		
 		this.clients = clients;
 		this.tracker = tracker;
 		this.buffer = buffer;
@@ -23,28 +33,53 @@ public class MessageSendingService implements Runnable {
 	}
 	
 	@Override
-	public void run() {
+	public final void run() {
 		this.isRunning = true;
-		while (this.isRunning) {
-			if (!this.buffer.isEmpty()) {
-				synchronized (this.buffer) {
-					while (!this.buffer.isEmpty()) {
-						Message message = this.buffer.remove();
-						synchronized (this.tracker) {
-							this.tracker.put(message.getUsername(), System.currentTimeMillis());
-						}
-						synchronized (this.clients) {
-							for (PrintStream client : this.clients.values()) {
-								if (message != null) {
-									client.println(message.getUsername() + ": " + message.getContent());
-								}
-							}
-						}
-					}
-					this.buffer.notify();
-				}
+		while (this.isRunning()) {
+			if (this.containsMessages()) {
+				this.clearBuffer();
 			}
 		}
+	}
+	
+	public boolean isRunning() {
+		return this.isRunning;
+	}
+	
+	public boolean containsMessages() {
+		return !this.getBuffer().isEmpty();
+	}
+	
+	protected void clearBuffer() {
+		while (this.containsMessages()) {
+			Message message = this.getBuffer().remove();
+			if (message != null) {
+				this.assignTrackingTimestamp(message);
+				this.sendMessageToClients(message);
+			}
+		}
+	}
+	
+	protected void assignTrackingTimestamp(Message message) {
+		this.getClientTracker().put(message.getUsername(), message.getTimestamp());
+	}
+	
+	protected void sendMessageToClients(Message message) {
+		for (PrintStream client : this.getClientStreams().values()) {
+			client.println(message.getUsername() + ": " + message.getContent());
+		}
+	}
+	
+	protected final Queue<Message> getBuffer() {
+		return this.buffer;
+	}
+	
+	protected final Map<String, PrintStream> getClientStreams() {
+		return this.clients;
+	}
+	
+	protected final Map<String, Long> getClientTracker() {
+		return this.tracker;
 	}
 	
 	public void shutdown() {
