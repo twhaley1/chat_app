@@ -6,11 +6,13 @@ import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
+import com.whaley.chatserver.service.incoming.messagereading.WaitingMessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class IncomingMessageServer extends Server {
 
 	private SynchronizedQueue<Message> buffer;
+	private IncomingServerHandleInterpreter interpreter;
 	
 	public IncomingMessageServer(ServerEndpoint endpoint, SynchronizedQueue<Message> buffer) {
 		super(endpoint, Runtime.getRuntime().availableProcessors());
@@ -19,6 +21,7 @@ public class IncomingMessageServer extends Server {
 		}
 		
 		this.buffer = buffer;
+		this.interpreter = new IncomingServerHandleInterpreter();
 	}
 
 	@Override
@@ -27,7 +30,7 @@ public class IncomingMessageServer extends Server {
 	}
 
 	protected Runnable createReadingService(ClientEndpoint client) {
-		return new WaitingMessageReadingService(client, this.buffer);
+		return new WaitingMessageReadingService(client, this.buffer, this.interpreter);
 	}
 	
 	protected final SynchronizedQueue<Message> getBuffer() {

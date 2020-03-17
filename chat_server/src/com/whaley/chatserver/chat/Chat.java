@@ -38,7 +38,7 @@ public class Chat {
 	}
 	
 	public void end() {
-		this.incoming.close();
-		this.outgoing.close();
+		this.incoming.closeServer();
+		this.outgoing.closeServer();
 	}
 }

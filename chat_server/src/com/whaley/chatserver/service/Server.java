@@ -28,13 +28,13 @@ public abstract class Server implements Runnable {
 	@Override
 	public final void run() {
 		try {
-			this.start();
+			this.startServer();
 		} catch (IOException e) {
-			this.close();
+			this.closeServer();
 		}
 	}
 
-	private void start() throws IOException {
+	private void startServer() throws IOException {
 		while (!this.serverEndpoint.isClosed()) {
 			ClientEndpoint clientEndpoint = this.serverEndpoint.accept();
 			try {
@@ -47,11 +47,7 @@ public abstract class Server implements Runnable {
 	
 	protected abstract void handle(ClientEndpoint client) throws IOException;
 	
-	protected void execute(Runnable task) {
-		this.pool.execute(task);
-	}
-	
-	public void close() {
+	public void closeServer() {
 		try {
 			this.pool.awaitTermination(50, TimeUnit.MILLISECONDS);
 			this.serverEndpoint.close();
@@ -63,4 +59,9 @@ public abstract class Server implements Runnable {
 	public final boolean isClosed() {
 		return this.serverEndpoint.isClosed();
 	}
+	
+	protected void execute(Runnable task) {
+		this.pool.execute(task);
+	}
+	
 }

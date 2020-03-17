@@ -13,37 +13,58 @@ public class SynchronizedQueue<E> {
 		this.queue = new LinkedList<E>();
 	}
 	
-	public synchronized void enqueue(E element) {
-		this.queue.add(element);
+	public void enqueue(E element) {
+		synchronized (this) {
+			this.queue.add(element);
+		}
 	}
 	
-	public synchronized void enqueueAndWait(E element) throws InterruptedException {
-		this.queue.add(element);
-		this.wait();
+	public void enqueueAndWait(E element) throws InterruptedException {
+		synchronized (this) {
+			this.enqueue(element);
+			this.wait();
+		}
 	}
 	
-	public synchronized E dequeue() {
-		return this.queue.remove();
+	public E dequeue() {
+		synchronized (this) {
+			return this.queue.remove();
+		}
 	}
 	
-	public synchronized List<E> transfer() {
-		List<E> items = new ArrayList<E>(this.queue);
-		this.queue.clear();
-		return items;
+	public E dequeueAndNotify() {
+		synchronized (this) {
+			E item = this.dequeue();
+			this.notify();
+			return item;
+		}
+	}
+	
+	public List<E> transfer() {
+		synchronized (this) {
+			List<E> items = new ArrayList<E>(this.queue);
+			this.queue.clear();
+			return items;
+		}
 	}
 	
 	public synchronized List<E> transferAndNotify() {
-		List<E> items = new ArrayList<E>(this.queue);
-		this.queue.clear();
-		this.notify();
-		return items;
+		synchronized (this) {
+			List<E> items = this.transfer();
+			this.notify();
+			return items;
+		}
 	}
 	
-	public synchronized boolean isEmpty() {
-		return this.queue.isEmpty();
+	public boolean isEmpty() {
+		synchronized (this) {
+			return this.queue.isEmpty();
+		}
 	}
 	
-	public synchronized int size() {
-		return this.queue.size();
+	public int size() {
+		synchronized (this) {
+			return this.queue.size();
+		}
 	}
 }

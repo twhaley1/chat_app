@@ -52,12 +52,12 @@ public class TestHandle {
 		
 	}
 	
-	private class TestOutgoingConnectable implements ServerEndpoint {
+	private class TestSingleCommandServerEndpoint implements ServerEndpoint {
 
 		private String input;
 		private int count;
 		
-		public TestOutgoingConnectable(String input) {
+		public TestSingleCommandServerEndpoint(String input) {
 			this.input = input;
 			this.count = 0;
 		}
@@ -79,16 +79,114 @@ public class TestHandle {
 		}
 	}
 	
+	private class TestDualCommandServerEndpoint implements ServerEndpoint {
+
+		private String enter;
+		private String exit;
+		private int count;
+		
+		public TestDualCommandServerEndpoint(String enter, String exit) {
+			this.enter = enter;
+			this.exit = exit;
+			this.count = 0;
+		}
+		
+		@Override
+		public ClientEndpoint accept() throws IOException {
+			this.count++;
+			return this.count == 1 ? new TestStreamable(this.enter) : new TestStreamable(this.exit);
+		}
+
+		@Override
+		public void close() throws IOException {
+			this.count = 2;
+		}
+
+		@Override
+		public boolean isClosed() {
+			return this.count > 1;
+		}
+	}
+	
 	@Test
 	public void testAddsCorrectSyntax() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		OutgoingMessageServer server = new OutgoingMessageServer(new TestOutgoingConnectable("enter twhal"), buffer);
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("enter twhal"), buffer);
 		
 		server.run();
-		server.close();
+		int size = server.getUsernamesInRoom().size();
+		boolean containsTwhal = server.getUsernamesInRoom().contains("twhal");
+		server.closeServer();
 		
-		assertAll(() -> assertEquals(1, server.getUsernamesInRoom().size()),
-				() -> assertEquals(true, server.getUsernamesInRoom().contains("twhal")));
+		assertAll(() -> assertEquals(1, size),
+				() -> assertEquals(true, containsTwhal));
 	}
-
+	
+	@Test
+	public void testAddsCorrectSyntaxCaseInsensitive() {
+		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("EnTeR twhal"), buffer);
+		
+		server.run();
+		int size = server.getUsernamesInRoom().size();
+		boolean containsTwhal = server.getUsernamesInRoom().contains("twhal");
+		server.closeServer();
+		
+		assertAll(() -> assertEquals(1, size),
+				() -> assertEquals(true, containsTwhal));
+	}
+	
+	@Test
+	public void testAddsCorrectSyntaxTrimmingExtraSpace() {
+		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("     enter    twhal        "), buffer);
+		
+		server.run();
+		int size = server.getUsernamesInRoom().size();
+		boolean containsTwhal = server.getUsernamesInRoom().contains("twhal");
+		server.closeServer();
+		
+		assertAll(() -> assertEquals(1, size),
+				() -> assertEquals(true, containsTwhal));
+	}
+	
+	@Test
+	public void testUnknownCommand() {
+		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("jbob twhal"), buffer);
+		
+		server.run();
+		int size = server.getUsernamesInRoom().size();
+		server.closeServer();
+		
+		assertEquals(0, size);
+	}
+	
+	@Test
+	public void testLeavesCorrectSyntax() {
+		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestDualCommandServerEndpoint("enter twhal", "leave twhal"), buffer);
+		
+		server.run();
+		int size = server.getUsernamesInRoom().size();
+		boolean containsTwhal = server.getUsernamesInRoom().contains("twhal");
+		server.closeServer();
+		
+		assertAll(() -> assertEquals(0, size),
+				() -> assertEquals(false, containsTwhal));
+	}
+	
+	@Test
+	public void testLeaveOnUnknownUsername() {
+		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestDualCommandServerEndpoint("enter twhal", "leave werf"), buffer);
+		
+		server.run();
+		int size = server.getUsernamesInRoom().size();
+		boolean containsTwhal = server.getUsernamesInRoom().contains("twhal");
+		server.closeServer();
+		
+		assertAll(() -> assertEquals(1, size),
+				() -> assertEquals(true, containsTwhal));
+	}
 }

@@ -16,7 +16,8 @@ import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.incoming.IncomingMessageServer;
-import com.whaley.chatserver.service.incoming.MessageReadingService;
+import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter;
+import com.whaley.chatserver.service.incoming.messagereading.MessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class TestHandle {
@@ -90,32 +91,32 @@ public class TestHandle {
 
 		@Override
 		protected Runnable createReadingService(ClientEndpoint client) {
-			return new MessageReadingService(client, this.getBuffer());
+			return new MessageReadingService(client, this.getBuffer(), new IncomingServerHandleInterpreter());
 		}
 	}
 	
 	@Test
 	public void testTrimsInputBeforeAddingToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint("     twhal         :     Hey, how are you?    :  343929340   "), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint("     twhal     " + ((char) 29) + "    Hey, How are you!?    " + ((char) 29) + "   9324890234   "), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		Message addedMessage = buffer.dequeue();
 		assertAll(() -> assertEquals("twhal", addedMessage.getUsername()),
-				() -> assertEquals("Hey, how are you?", addedMessage.getContent()),
-				() -> assertEquals(343929340, addedMessage.getTimestamp()));
+				() -> assertEquals("Hey, How are you!?", addedMessage.getContent()),
+				() -> assertEquals(9324890234L, addedMessage.getTimestamp()));
 	}
 	
 	@Test
 	public void testAddsCorrectMessageToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal:Hey, how are you?:343929340"), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal" + ((char) 29) + "Hey, How are you!?" + ((char) 29) + "9324890234"), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		Message addedMessage = buffer.dequeue();
 		assertAll(() -> assertEquals("twhal", addedMessage.getUsername()),
-				() -> assertEquals("Hey, how are you?", addedMessage.getContent()),
-				() -> assertEquals(343929340, addedMessage.getTimestamp()));
+				() -> assertEquals("Hey, How are you!?", addedMessage.getContent()),
+				() -> assertEquals(9324890234L, addedMessage.getTimestamp()));
 	}
 	
 	@Test
@@ -123,7 +124,7 @@ public class TestHandle {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		Server server = new TestIncomingMessageServer(new TestServerEndpoint(""), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 	
@@ -132,70 +133,70 @@ public class TestHandle {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhalheyhowareya"), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 	
 	@Test
 	public void testDoesNotAddWithoutTimestampToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal:Hey, how are you:"), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal" + ((char) 29) + "How are you!?" + ((char) 29)), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 	
 	@Test
 	public void testDoesNotAddWithoutTimestampAndContentToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal::"), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal" + ((char) 29) + ((char) 29)), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 	
 	@Test
 	public void testDoesNotAddWithoutUsernameToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint(":Hey, how are you:2943029029"), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint(((char) 29) + "How are you!?" + ((char) 29) + "9324890234"), buffer);
 		server.run();
-		server.close();
-		assertEquals(0, buffer.size());
-	}
-	
-	@Test
-	public void testDoesNotAddWithoutUsernameAndContentToBuffer() {
-		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint(":Hey, how are you:"), buffer);
-		server.run();
-		server.close();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 	
 	@Test
 	public void testDoesNotAddWithoutUsernameAndTimestampToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint("::2943029029"), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint(((char) 29) + "How are you!?" + ((char) 29)), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
+		assertEquals(0, buffer.size());
+	}
+	
+	@Test
+	public void testDoesNotAddWithoutUsernameAndContentToBuffer() {
+		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint(((char) 29) + ((char) 29) + "9324890234"), buffer);
+		server.run();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 	
 	@Test
 	public void testDoesNotAddWithoutContentToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal::2943029029"), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint("twhal" + ((char) 29) + ((char) 29) + "9324890234"), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 	
 	@Test
 	public void testDoesNotAllowWithoutAllFieldsToBuffer() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server server = new TestIncomingMessageServer(new TestServerEndpoint("::"), buffer);
+		Server server = new TestIncomingMessageServer(new TestServerEndpoint(((char) 29) + ((char) 29) + ""), buffer);
 		server.run();
-		server.close();
+		server.closeServer();
 		assertEquals(0, buffer.size());
 	}
 }

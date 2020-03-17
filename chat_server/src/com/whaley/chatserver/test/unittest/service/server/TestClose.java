@@ -53,7 +53,7 @@ public class TestClose {
 		OutputStream os = new ByteArrayOutputStream();
 		System.setErr(new PrintStream(os));
 		
-		server.close();
+		server.closeServer();
 		System.setErr(previousError);
 		assertEquals("An IOException Was Thrown When Closing Down A Server." + System.lineSeparator(), os.toString());
 	}

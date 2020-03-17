@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
-import com.whaley.chatserver.service.incoming.MessageReadingService;
+import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter;
+import com.whaley.chatserver.service.incoming.messagereading.MessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class TestConstructor {
@@ -40,11 +41,11 @@ public class TestConstructor {
 	
 	@Test
 	public void testNotAllowNullStreamable() {
-		assertThrows(IllegalArgumentException.class, () -> new MessageReadingService(null, new SynchronizedQueue<Message>()));
+		assertThrows(IllegalArgumentException.class, () -> new MessageReadingService(null, new SynchronizedQueue<Message>(), new IncomingServerHandleInterpreter()));
 	}
 
 	@Test
 	public void testNotAllowNullQueue() {
-		assertThrows(IllegalArgumentException.class, () -> new MessageReadingService(new TestStreamable(), null));
+		assertThrows(IllegalArgumentException.class, () -> new MessageReadingService(new TestStreamable(), null, new IncomingServerHandleInterpreter()));
 	}
 }

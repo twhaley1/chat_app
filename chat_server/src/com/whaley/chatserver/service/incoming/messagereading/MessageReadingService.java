@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.incoming;
+package com.whaley.chatserver.service.incoming.messagereading;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,23 +7,30 @@ import java.io.PrintStream;
 
 import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
+import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter;
+import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter.InterpretedData;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class MessageReadingService implements Runnable {
 
 	private ClientEndpoint client;
 	private SynchronizedQueue<Message> buffer;
+	private IncomingServerHandleInterpreter interpreter;
 	
-	public MessageReadingService(ClientEndpoint client, SynchronizedQueue<Message> buffer) {
+	public MessageReadingService(ClientEndpoint client, SynchronizedQueue<Message> buffer, IncomingServerHandleInterpreter interpreter) {
 		if (client == null) {
 			throw new IllegalArgumentException("client should not be null");
 		}
 		if (buffer == null) {
 			throw new IllegalArgumentException("buffer should not be null");
 		}
+		if (interpreter == null) {
+			throw new IllegalArgumentException("interpreter should not be null");
+		}
 		
 		this.client = client;
 		this.buffer = buffer;
+		this.interpreter = interpreter;
 	}
 	
 	@Override
@@ -32,13 +39,11 @@ public class MessageReadingService implements Runnable {
 				PrintStream outgoingMessages = new PrintStream(this.client.getOutputStream());
 				BufferedReader buffer = new BufferedReader(incomingMessages)) {
 			String message = buffer.readLine();
-			if (message != null) {
-				String[] contents = message.split(":");
-				if (this.isFormattedCorrectly(contents)) {
-					Message data = new Message(contents[0].strip(), contents[1].strip(), Long.parseLong(contents[2].strip()));
-					this.enqueueMessage(data);
-					System.out.println("Message Received - " + this.client.getInetAddress() + ":" + data.getUsername() + " - " + data.getContent());
-				}
+			if (this.interpreter.isValidFormat(message)) {
+				InterpretedData data = this.interpreter.extractData(message);
+				Message messageData = data.getMessage();
+				this.enqueueMessage(messageData);
+				System.out.println("Message Received - " + this.client.getInetAddress() + ":" + messageData.getUsername() + " - " + messageData.getContent());
 			}
 			this.client.close();
 		} catch (IOException | InterruptedException e) {
@@ -53,16 +58,5 @@ public class MessageReadingService implements Runnable {
 	protected SynchronizedQueue<Message> getBuffer() {
 		return this.buffer;
 	}
-	
-	private boolean isFormattedCorrectly(String[] contents) {
-		if (contents.length != 3) {
-			return false;
-		}
-		
-		String username = contents[0].strip();
-		String content = contents[1].strip();
-		String timestamp = contents[2].strip();
-		
-		return !username.isEmpty() && !content.isEmpty() && !timestamp.isEmpty();
-	}
+
 }

@@ -16,27 +16,38 @@ public class ListeningRoom {
 		this.room = new HashMap<String, PrintStream>();
 	}
 	
-	public synchronized void assignListener(String username, PrintStream stream) {
-		this.room.put(username, stream);
-	}
-	
-	public synchronized void removeListener(String username) {
-		this.room.remove(username);
-	}
-	
-	public synchronized void kickListeners() {
-		for (PrintStream client : this.room.values()) {
-			client.close();
+	public void assignListener(String username, PrintStream stream) {
+		synchronized (this) {
+			this.room.put(username, stream);
 		}
 	}
 	
-	public synchronized Collection<String> getListeningUsernames() {
-		return Collections.unmodifiableCollection(this.room.keySet());
+	public void removeListener(String username) {
+		synchronized (this) {
+			this.room.remove(username);
+		}
 	}
 	
-	public synchronized void sendToListeners(Message message) {
-		for (PrintStream client : this.room.values()) {
-			client.println(message.getUsername() + ": " + message.getContent());
+	public void kickListeners() {
+		synchronized (this) {
+			for (PrintStream client : this.room.values()) {
+				client.close();
+			}
+			this.room.clear();
+		}
+	}
+	
+	public Collection<String> getListeningUsernames() {
+		synchronized (this) {
+			return Collections.unmodifiableCollection(this.room.keySet());
+		}
+	}
+	
+	public void sendToListeners(Message message) {
+		synchronized (this) {
+			for (PrintStream client : this.room.values()) {
+				client.println(message.getUsername() + ": " + message.getContent());
+			}
 		}
 	}
 }

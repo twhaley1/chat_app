@@ -33,8 +33,8 @@ public class TestChatServer {
 		
 		public TestIncomingMessageServerEndpoint() {
 			this.messages = new LinkedList<String>();
-			this.messages.add("  twhal  : What's up mate? : 1");
-			this.messages.add("   jbob: I'm doing well: 2343242");
+			this.messages.add("  twhal  " + ((char) 29) + " What's up mate? " + ((char) 29) + " 1");
+			this.messages.add("   jbob" + ((char) 29) + " I'm doing well" + ((char) 29) + " 2343242");
 			this.messages.add(" myikes     : Hello, there fella :");
 			this.messages.add("ff");
 		}
@@ -97,9 +97,9 @@ public class TestChatServer {
 		
 		public TestOutgoingMessageServerEndpoint() {
 			this.users = new LinkedList<String>();
-			this.users.add("enter twhal");
-			this.users.add("enter jbob");
-			this.users.add("enter myikes");
+			this.users.add("  eNter  twhal ");
+			this.users.add(" ENTER   jbob");
+			this.users.add("enteR myikes  ");
 			
 			this.outputs = new ArrayList<OutputStream>();
 		}
@@ -146,12 +146,12 @@ public class TestChatServer {
 		}
 		
 		assertAll(() -> assertEquals(3, sentToClients.size()),
-				() -> assertEquals("twhal: What's up mate?" + System.lineSeparator()
-				+ "jbob: I'm doing well" + System.lineSeparator(), sentToClients.get(0)),
-				() -> assertEquals("twhal: What's up mate?" + System.lineSeparator()
-				+ "jbob: I'm doing well" + System.lineSeparator(), sentToClients.get(1)),
-				() -> assertEquals("twhal: What's up mate?" + System.lineSeparator()
-				+ "jbob: I'm doing well" + System.lineSeparator(), sentToClients.get(2)));
+				() -> assertEquals(true, sentToClients.get(0).contains("twhal: What's up mate?" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(0).contains("jbob: I'm doing well" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(1).contains("twhal: What's up mate?" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(1).contains("jbob: I'm doing well" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(2).contains("twhal: What's up mate?" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(2).contains("jbob: I'm doing well" + System.lineSeparator())));
 	}
 
 }

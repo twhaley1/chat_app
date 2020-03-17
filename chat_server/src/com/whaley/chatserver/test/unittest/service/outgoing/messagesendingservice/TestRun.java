@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.outgoing.ListeningRoom;
-import com.whaley.chatserver.service.outgoing.MessageSendingService;
+import com.whaley.chatserver.service.outgoing.messagesending.MessageSendingService;
 
 public class TestRun {
 

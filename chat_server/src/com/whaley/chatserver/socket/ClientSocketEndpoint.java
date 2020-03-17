@@ -10,6 +10,10 @@ public class ClientSocketEndpoint implements ClientEndpoint {
 	private Socket socket;
 	
 	public ClientSocketEndpoint(Socket socket) {
+		if (socket == null) {
+			throw new IllegalArgumentException("socket should not be null");
+		}
+		
 		this.socket = socket;
 	}
 	
