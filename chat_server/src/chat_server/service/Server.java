@@ -3,16 +3,17 @@ package chat_server.service;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import chat_server.serversocket.Connectable;
-import chat_server.socket.Streamable;
+import chat_server.serversocket.ServerEndpoint;
+import chat_server.socket.ClientEndpoint;
 
 public abstract class Server implements Runnable {
 	
 	private ExecutorService pool;
-	private Connectable serverEndpoint;
+	private ServerEndpoint serverEndpoint;
 	
-	protected Server(Connectable serverEndpoint, int numberOfThreads) {
+	protected Server(ServerEndpoint serverEndpoint, int numberOfThreads) {
 		if (serverEndpoint == null) {
 			throw new IllegalArgumentException("server endpoint should not be null");
 		}
@@ -35,7 +36,7 @@ public abstract class Server implements Runnable {
 
 	private void start() throws IOException {
 		while (!this.serverEndpoint.isClosed()) {
-			Streamable clientEndpoint = this.serverEndpoint.accept();
+			ClientEndpoint clientEndpoint = this.serverEndpoint.accept();
 			try {
 				this.handle(clientEndpoint);
 			} catch (IOException e) {
@@ -44,7 +45,7 @@ public abstract class Server implements Runnable {
 		}
 	}
 	
-	protected abstract void handle(Streamable client) throws IOException;
+	protected abstract void handle(ClientEndpoint client) throws IOException;
 	
 	protected void execute(Runnable task) {
 		this.pool.execute(task);
@@ -52,11 +53,10 @@ public abstract class Server implements Runnable {
 	
 	public void close() {
 		try {
+			this.pool.awaitTermination(50, TimeUnit.MILLISECONDS);
 			this.serverEndpoint.close();
-			this.pool.shutdown();
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			System.err.println("An IOException Was Thrown When Closing Down A Server.");
-			System.err.println("Log: " + e.getMessage());
 		}
 	}
 	

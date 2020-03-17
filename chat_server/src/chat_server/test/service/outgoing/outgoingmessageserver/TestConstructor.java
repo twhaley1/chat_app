@@ -6,16 +6,16 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-import chat_server.serversocket.Connectable;
+import chat_server.serversocket.ServerEndpoint;
 import chat_server.service.outgoing.OutgoingMessageServer;
-import chat_server.socket.Streamable;
+import chat_server.socket.ClientEndpoint;
 
 public class TestConstructor {
 
-	private class TestConnectable implements Connectable {
+	private class TestConnectable implements ServerEndpoint {
 
 		@Override
-		public Streamable accept() throws IOException {
+		public ClientEndpoint accept() throws IOException {
 			return null;
 		}
 
@@ -32,7 +32,7 @@ public class TestConstructor {
 	
 	@Test
 	public void testNotAllowNullBuffer() {
-		assertThrows(IllegalArgumentException.class, () -> new OutgoingMessageServer(new TestConnectable(), null));
+		assertThrows(IllegalArgumentException.class, () -> new OutgoingMessageServer(new TestConnectable(), null, Long.MAX_VALUE));
 	}
 
 }

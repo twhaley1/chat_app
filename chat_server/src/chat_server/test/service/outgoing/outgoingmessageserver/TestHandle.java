@@ -15,14 +15,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import chat_server.serversocket.Connectable;
+import chat_server.serversocket.ServerEndpoint;
 import chat_server.service.outgoing.OutgoingMessageServer;
-import chat_server.socket.Streamable;
+import chat_server.socket.ClientEndpoint;
 import chat_server.data.Message;
 
 public class TestHandle {
 
-	private class TestStreamable implements Streamable {
+	private class TestStreamable implements ClientEndpoint {
 		
 		private InputStream is;
 		private OutputStream os;
@@ -55,7 +55,7 @@ public class TestHandle {
 		
 	}
 	
-	private class TestOutgoingConnectable implements Connectable {
+	private class TestOutgoingConnectable implements ServerEndpoint {
 
 		private String input;
 		private int count;
@@ -66,7 +66,7 @@ public class TestHandle {
 		}
 		
 		@Override
-		public Streamable accept() throws IOException {
+		public ClientEndpoint accept() throws IOException {
 			this.count++;
 			return new TestStreamable(this.input);
 		}
@@ -87,17 +87,13 @@ public class TestHandle {
 	@BeforeEach
 	public void setUp() {
 		Queue<Message> buffer = new LinkedList<Message>();
-		this.server = new OutgoingMessageServer(new TestOutgoingConnectable("twhal"), buffer);
-	}
-	
-	@AfterEach
-	public void tearDown() {
-		this.server.close();
+		this.server = new OutgoingMessageServer(new TestOutgoingConnectable("twhal"), buffer, Long.MAX_VALUE);
 	}
 	
 	@Test
 	public void testProperlyHandlesStreamable() {
 		this.server.run();
+		this.server.close();
 		
 		assertAll(() -> assertEquals(1, this.server.getUsernamesInRoom().size()),
 				() -> assertEquals(1, this.server.getTrackedUsernames().size()),

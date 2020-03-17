@@ -13,13 +13,13 @@ import java.util.Queue;
 
 import org.junit.jupiter.api.Test;
 
-import chat_server.socket.Streamable;
+import chat_server.socket.ClientEndpoint;
 import chat_server.data.Message;
 import chat_server.service.incoming.MessageReadingService;
 
 public class TestRun {
 
-	private class TestStreamable implements Streamable {
+	private class TestStreamable implements ClientEndpoint {
 		
 		private boolean isClosed;
 		
@@ -59,7 +59,7 @@ public class TestRun {
 		}
 	}
 	
-	private class FailingStreamable implements Streamable {
+	private class FailingStreamable implements ClientEndpoint {
 
 		@Override
 		public InputStream getInputStream() throws IOException {
@@ -84,7 +84,7 @@ public class TestRun {
 	
 	@Test
 	public void testHandlesFailingStream() {
-		Streamable stream = new FailingStreamable();
+		ClientEndpoint stream = new FailingStreamable();
 		Queue<Message> buffer = new LinkedList<Message>();
 		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();

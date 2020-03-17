@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Queue;
 
 import chat_server.data.Message;
-import chat_server.serversocket.Connectable;
+import chat_server.serversocket.ServerEndpoint;
 import chat_server.service.Server;
-import chat_server.socket.Streamable;
+import chat_server.socket.ClientEndpoint;
 
 public class OutgoingMessageServer extends Server {
 
@@ -24,7 +24,7 @@ public class OutgoingMessageServer extends Server {
 	private MessageSendingService messageService;
 	private TimeoutService trackingService;
 	
-	public OutgoingMessageServer(Connectable endpoint, Queue<Message> buffer) {
+	public OutgoingMessageServer(ServerEndpoint endpoint, Queue<Message> buffer, long timeout) {
 		super(endpoint, Runtime.getRuntime().availableProcessors());
 		if (buffer == null) {
 			throw new IllegalArgumentException("buffer should not be null");
@@ -35,14 +35,14 @@ public class OutgoingMessageServer extends Server {
 		this.tracker = Collections.synchronizedMap(new HashMap<String, Long>());
 		
 		this.messageService = new NotifyingMessageSendingService(this.room, this.tracker, this.buffer);
-		this.trackingService = new TimeoutService(this.room, this.tracker, TimeoutService.TIMEOUT_ONE_MINUTE);
+		this.trackingService = new TimeoutService(this.room, this.tracker, timeout);
 		
 		this.execute(this.messageService);
 		this.execute(this.trackingService);
 	}
 
 	@Override
-	protected void handle(Streamable client) throws IOException {
+	protected void handle(ClientEndpoint client) throws IOException {
 		String username = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
 		synchronized (this.room) {
 			this.room.put(username, new PrintStream(client.getOutputStream()));
@@ -56,10 +56,10 @@ public class OutgoingMessageServer extends Server {
 	public void close() {
 		this.messageService.shutdown();
 		this.trackingService.shutdown();
+		super.close();
 		for (PrintStream client : this.room.values()) {
 			client.close();
 		}
-		super.close();
 	}
 	
 	public Collection<String> getUsernamesInRoom() {

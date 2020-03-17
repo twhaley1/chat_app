@@ -2,11 +2,11 @@ package chat_server.serversocket;
 
 import java.io.IOException;
 
-import chat_server.socket.Streamable;
+import chat_server.socket.ClientEndpoint;
 
-public interface Connectable {
+public interface ServerEndpoint {
 
-	Streamable accept() throws IOException;
+	ClientEndpoint accept() throws IOException;
 	
 	void close() throws IOException;
 	

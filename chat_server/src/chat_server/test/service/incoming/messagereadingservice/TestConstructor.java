@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import chat_server.data.Message;
 import chat_server.service.incoming.MessageReadingService;
-import chat_server.socket.Streamable;
+import chat_server.socket.ClientEndpoint;
 
 public class TestConstructor {
 
-	private class TestStreamable implements Streamable {
+	private class TestStreamable implements ClientEndpoint {
 
 		@Override
 		public InputStream getInputStream() throws IOException {

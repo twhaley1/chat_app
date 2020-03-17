@@ -1,10 +1,15 @@
 package chat_server;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import chat_server.chat.Chat;
-import chat_server.serversocket.Connectable;
-import chat_server.serversocket.ConnectableServerSocket;
+import chat_server.serversocket.ServerSocketEndpoint;
+import chat_server.service.Server;
+import chat_server.service.incoming.IncomingMessageServer;
+import chat_server.service.outgoing.OutgoingMessageServer;
+import chat_server.data.Message;
 
 public class Main {
 
@@ -27,9 +32,11 @@ public class Main {
 			}
 			
 			String serverTitle = args[0];
-			Connectable incomingServer = new ConnectableServerSocket(incomingMessagePort);
-			Connectable outgoingServer = new ConnectableServerSocket(outgoingMessagePort);
-			Chat server = new Chat(serverTitle, incomingServer, outgoingServer);
+
+			Queue<Message> buffer = new LinkedList<Message>();
+			Server incoming = new IncomingMessageServer(new ServerSocketEndpoint(incomingMessagePort), buffer);
+			Server outgoing = new OutgoingMessageServer(new ServerSocketEndpoint(outgoingMessagePort), buffer);
+			Chat server = new Chat(serverTitle, incoming, outgoing);
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				server.end();
 			}));

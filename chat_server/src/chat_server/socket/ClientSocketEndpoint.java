@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class StreamableSocket implements Streamable {
+public class ClientSocketEndpoint implements ClientEndpoint {
 
 	private Socket socket;
 	
-	public StreamableSocket(Socket socket) {
+	public ClientSocketEndpoint(Socket socket) {
 		this.socket = socket;
 	}
 	

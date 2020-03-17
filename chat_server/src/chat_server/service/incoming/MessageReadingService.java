@@ -7,14 +7,14 @@ import java.io.PrintStream;
 import java.util.Queue;
 
 import chat_server.data.Message;
-import chat_server.socket.Streamable;
+import chat_server.socket.ClientEndpoint;
 
 public class MessageReadingService implements Runnable {
 
-	private Streamable client;
+	private ClientEndpoint client;
 	private Queue<Message> buffer;
 	
-	public MessageReadingService(Streamable client, Queue<Message> buffer) {
+	public MessageReadingService(ClientEndpoint client, Queue<Message> buffer) {
 		if (client == null) {
 			throw new IllegalArgumentException("client should not be null");
 		}
@@ -33,12 +33,10 @@ public class MessageReadingService implements Runnable {
 				BufferedReader buffer = new BufferedReader(incomingMessages)) {
 			String message = buffer.readLine();
 			if (message != null) {
-				try {
-					String[] contents = message.split(":");
-					Message data = new Message(contents[0], contents[1], Long.parseLong(contents[2]));
+				String[] contents = message.split(":");
+				if (this.isFormattedCorrectly(contents)) {
+					Message data = new Message(contents[0].strip(), contents[1].strip(), Long.parseLong(contents[2].strip()));
 					this.enqueueMessage(data);
-				} catch (IndexOutOfBoundsException e) {
-					System.err.println("Message Will Not Be Processed - Invalid Format: " + message);
 				}
 			}
 			this.client.close();
@@ -54,5 +52,17 @@ public class MessageReadingService implements Runnable {
 	
 	protected Queue<Message> getBuffer() {
 		return this.buffer;
+	}
+	
+	private boolean isFormattedCorrectly(String[] contents) {
+		if (contents.length != 3) {
+			return false;
+		}
+		
+		String username = contents[0].strip();
+		String content = contents[1].strip();
+		String timestamp = contents[2].strip();
+		
+		return !username.isEmpty() && !content.isEmpty() && !timestamp.isEmpty();
 	}
 }
