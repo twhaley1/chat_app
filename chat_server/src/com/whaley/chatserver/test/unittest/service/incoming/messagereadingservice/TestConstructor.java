@@ -48,4 +48,9 @@ public class TestConstructor {
 	public void testNotAllowNullQueue() {
 		assertThrows(IllegalArgumentException.class, () -> new MessageReadingService(new TestStreamable(), null, new IncomingServerHandleInterpreter()));
 	}
+	
+	@Test
+	public void testNotAllowNullInterpreter() {
+		assertThrows(IllegalArgumentException.class, () -> new MessageReadingService(new TestStreamable(), new SynchronizedQueue<Message>(), null));
+	}
 }

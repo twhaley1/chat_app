@@ -10,8 +10,12 @@ public class ServerSocketEndpoint implements ServerEndpoint {
 
 	private ServerSocket socket;
 	
-	public ServerSocketEndpoint(int port) throws IOException {
-		this.socket = new ServerSocket(port);
+	public ServerSocketEndpoint(ServerSocket socket) throws IOException {
+		if (socket == null) {
+			throw new IllegalArgumentException("socket should not be null");
+		}
+		
+		this.socket = socket;
 	}
 
 	@Override

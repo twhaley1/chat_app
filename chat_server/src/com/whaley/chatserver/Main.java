@@ -1,6 +1,7 @@
 package com.whaley.chatserver;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 
 import com.whaley.chatserver.chat.Chat;
 import com.whaley.chatserver.data.Message;
@@ -29,13 +30,12 @@ public class Main {
 				System.err.println("The Ports Given As Program Arguments Must Be Greater Than Or Equal To Zero.");
 				System.exit(3);
 			}
-
 			String serverTitle = args[0];
 
 			SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-			Server incoming = new IncomingMessageServer(new ServerSocketEndpoint(incomingMessagePort), buffer);
-			Server outgoing = new OutgoingMessageServer(new ServerSocketEndpoint(outgoingMessagePort), buffer);
-			Chat server = new Chat(serverTitle, incoming, outgoing);
+			Server incomingConnectionServer = new IncomingMessageServer(new ServerSocketEndpoint(new ServerSocket(incomingMessagePort)), buffer);
+			Server outgoingConnectionServer = new OutgoingMessageServer(new ServerSocketEndpoint(new ServerSocket(outgoingMessagePort)), buffer);
+			Chat server = new Chat(serverTitle, incomingConnectionServer, outgoingConnectionServer);
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				server.end();
 			}));
