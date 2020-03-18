@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
-import com.whaley.chatserver.service.outgoing.ListeningRoom;
+import com.whaley.chatserver.service.data.Message;
+import com.whaley.chatserver.service.outgoing.ListeningClients;
 import com.whaley.chatserver.service.outgoing.messagesending.MessageSendingService;
 
 public class TestConstructor {
@@ -19,13 +19,13 @@ public class TestConstructor {
 	
 	@Test
 	public void testNotAllowNullBuffer() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		assertThrows(IllegalArgumentException.class, () -> new MessageSendingService(room, null));
 	}
 	
 	@Test
 	public void testValidConstruction() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		MessageSendingService service = new MessageSendingService(room, buffer);
 		

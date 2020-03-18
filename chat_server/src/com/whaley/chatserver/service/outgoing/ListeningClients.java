@@ -6,29 +6,29 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.whaley.chatserver.data.Message;
+import com.whaley.chatserver.service.data.Message;
 
-public class ListeningRoom {
+public class ListeningClients {
 
 	private Map<String, PrintStream> room;
 	
-	public ListeningRoom() {
+	public ListeningClients() {
 		this.room = new HashMap<String, PrintStream>();
 	}
 	
-	public void assignListener(String username, PrintStream stream) {
+	public void addClient(String clientUsername, PrintStream clientListeningStream) {
 		synchronized (this) {
-			this.room.put(username, stream);
+			this.room.put(clientUsername, clientListeningStream);
 		}
 	}
 	
-	public void removeListener(String username) {
+	public void removeClient(String clientUsername) {
 		synchronized (this) {
-			this.room.remove(username);
+			this.room.remove(clientUsername);
 		}
 	}
 	
-	public void kickListeners() {
+	public void kickClients() {
 		synchronized (this) {
 			for (PrintStream client : this.room.values()) {
 				client.close();
@@ -37,16 +37,16 @@ public class ListeningRoom {
 		}
 	}
 	
-	public Collection<String> getListeningUsernames() {
+	public Collection<String> getListeningClientUsernames() {
 		synchronized (this) {
 			return Collections.unmodifiableCollection(this.room.keySet());
 		}
 	}
 	
-	public void sendToListeners(Message message) {
+	public void sendToClients(Message message) {
 		synchronized (this) {
 			for (PrintStream client : this.room.values()) {
-				client.println(message.getUsername() + ": " + message.getContent());
+				client.println(message.getUsername() + ": " + message.getMessageContent());
 			}
 		}
 	}

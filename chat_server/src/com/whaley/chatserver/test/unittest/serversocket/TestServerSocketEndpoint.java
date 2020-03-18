@@ -1,4 +1,4 @@
-package com.whaley.chatserver.test.unittest.socket;
+package com.whaley.chatserver.test.unittest.serversocket;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
@@ -19,10 +20,11 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.whaley.chatserver.serversocket.ServerEndpoint;
+import com.whaley.chatserver.serversocket.ServerSocketEndpoint;
 import com.whaley.chatserver.socket.ClientEndpoint;
-import com.whaley.chatserver.socket.ClientSocketEndpoint;
 
-public class TestSocket {
+public class TestServerSocketEndpoint {
 
 	private class TestSocketImpl extends SocketImpl {
 
@@ -118,31 +120,50 @@ public class TestSocket {
 		
 	}
 	
-	@Test
-	public void testWorksCorrectly() throws IOException {
-		ClientEndpoint endpoint = new ClientSocketEndpoint(new MockSocket("testing"));
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(endpoint.getInputStream()));
-		String isContent = reader.readLine();
-		String osContent = endpoint.getOutputStream().toString();
-		String address = endpoint.getInetAddress();
-		reader.close();
-		assertEquals("testing", isContent);
-		assertEquals("", osContent);
-		assertEquals("localhost/127.0.0.1", address);
-	}
+	private class TestServerSocketImpl extends ServerSocket {
 
-	@Test
-	public void testClosesCorrectly() throws IOException {
-		Socket sock = new MockSocket("testing");
-		ClientEndpoint endpoint = new ClientSocketEndpoint(sock);
-		endpoint.close();
+		private boolean isClosed;
+		private String input;
 		
-		assertEquals(true, sock.isClosed());
+		public TestServerSocketImpl(String input) throws IOException {
+			super();
+			this.isClosed = false;
+			this.input = input;
+		}
+
+		@Override
+		public Socket accept() throws IOException {
+			return new MockSocket(this.input);
+		}
+
+		@Override
+		public void close() throws IOException {
+			this.isClosed = true;
+		}
+
+		@Override
+		public boolean isClosed() {
+			return this.isClosed;
+		}
+		
 	}
 	
 	@Test
 	public void testNotAllowNullSocket() {
-		assertThrows(IllegalArgumentException.class, () -> new ClientSocketEndpoint(null));
+		assertThrows(IllegalArgumentException.class, () -> new ServerSocketEndpoint(null));
+	}
+
+	@Test
+	public void testAcceptsCorrectly() throws IOException {
+		ServerEndpoint endpoint = new ServerSocketEndpoint(new TestServerSocketImpl("testing"));
+		
+		ClientEndpoint sock = endpoint.acceptClientEndpoint();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+		String contents = reader.readLine();
+		sock.close();
+		endpoint.closeServerEndpoint();
+		
+		assertAll(() -> assertEquals("testing", contents),
+				() -> assertEquals(true, endpoint.isClosed()));
 	}
 }

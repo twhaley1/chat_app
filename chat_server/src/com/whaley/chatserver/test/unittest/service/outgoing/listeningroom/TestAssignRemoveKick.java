@@ -7,35 +7,35 @@ import java.io.PrintStream;
 
 import org.junit.jupiter.api.Test;
 
-import com.whaley.chatserver.service.outgoing.ListeningRoom;
+import com.whaley.chatserver.service.outgoing.ListeningClients;
 
 public class TestAssignRemoveKick {
 
 	@Test
 	public void testAssigns() {
-		ListeningRoom room = new ListeningRoom();
-		room.assignListener("twhal", new PrintStream(new ByteArrayOutputStream()));
+		ListeningClients room = new ListeningClients();
+		room.addClient("twhal", new PrintStream(new ByteArrayOutputStream()));
 		
-		assertEquals(true, room.getListeningUsernames().contains("twhal"));
+		assertEquals(true, room.getListeningClientUsernames().contains("twhal"));
 	}
 
 	@Test
 	public void testRemoves() {
-		ListeningRoom room = new ListeningRoom();
-		room.assignListener("twhal", new PrintStream(new ByteArrayOutputStream()));
-		room.removeListener("twhal");
+		ListeningClients room = new ListeningClients();
+		room.addClient("twhal", new PrintStream(new ByteArrayOutputStream()));
+		room.removeClient("twhal");
 		
-		assertEquals(false, room.getListeningUsernames().contains("twhal"));
+		assertEquals(false, room.getListeningClientUsernames().contains("twhal"));
 	}
 	
 	@Test
 	public void testKicks() {
-		ListeningRoom room = new ListeningRoom();
-		room.assignListener("twhal", new PrintStream(new ByteArrayOutputStream()));
-		room.assignListener("rdav", new PrintStream(new ByteArrayOutputStream()));
+		ListeningClients room = new ListeningClients();
+		room.addClient("twhal", new PrintStream(new ByteArrayOutputStream()));
+		room.addClient("rdav", new PrintStream(new ByteArrayOutputStream()));
 		
-		room.kickListeners();
+		room.kickClients();
 		
-		assertEquals(0, room.getListeningUsernames().size());
+		assertEquals(0, room.getListeningClientUsernames().size());
 	}
 }

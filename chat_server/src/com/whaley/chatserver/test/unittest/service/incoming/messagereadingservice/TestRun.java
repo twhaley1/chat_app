@@ -11,9 +11,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
-import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter;
+import com.whaley.chatserver.service.data.Message;
 import com.whaley.chatserver.service.incoming.messagereading.MessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
@@ -86,7 +85,7 @@ public class TestRun {
 	public void testHandlesFailingStream() {
 		ClientEndpoint stream = new FailingStreamable();
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		MessageReadingService service = new MessageReadingService(stream, buffer, new IncomingServerHandleInterpreter());
+		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();
 		
 		assertEquals(0, buffer.size());
@@ -96,7 +95,7 @@ public class TestRun {
 	public void testAddsToBuffer() {
 		TestStreamable stream = new TestStreamable("twhal" + ((char) 29) + "How are you!?" + ((char) 29) + "9324890234");
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		MessageReadingService service = new MessageReadingService(stream, buffer, new IncomingServerHandleInterpreter());
+		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();
 		
 		assertEquals(1, buffer.size());
@@ -106,7 +105,7 @@ public class TestRun {
 	public void testClosesAfterAddition() {
 		TestStreamable stream = new TestStreamable("twhal" + ((char) 29) + "How are you!?" + ((char) 29) + "9324890234");
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		MessageReadingService service = new MessageReadingService(stream, buffer, new IncomingServerHandleInterpreter());
+		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();
 		
 		assertEquals(true, stream.isClosed());
@@ -116,7 +115,7 @@ public class TestRun {
 	public void testClosesAfterFailedAddition() {
 		TestStreamable stream = new TestStreamable("");
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		MessageReadingService service = new MessageReadingService(stream, buffer, new IncomingServerHandleInterpreter());
+		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();
 		
 		assertEquals(true, stream.isClosed());
@@ -126,7 +125,7 @@ public class TestRun {
 	public void testEmptyStringDoesNotAddToBuffer() {
 		TestStreamable stream = new TestStreamable("");
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		MessageReadingService service = new MessageReadingService(stream, buffer, new IncomingServerHandleInterpreter());
+		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();
 		
 		assertEquals(0, buffer.size());
@@ -136,7 +135,7 @@ public class TestRun {
 	public void testNewlineDoesNotAddToBuffer() {
 		TestStreamable stream = new TestStreamable(System.lineSeparator());
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		MessageReadingService service = new MessageReadingService(stream, buffer, new IncomingServerHandleInterpreter());
+		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();
 		
 		assertEquals(0, buffer.size());
@@ -146,7 +145,7 @@ public class TestRun {
 	public void testInvalidFormatDoesNotAddToBuffer() {
 		TestStreamable stream = new TestStreamable("Hey, How ya doing twhal??");
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		MessageReadingService service = new MessageReadingService(stream, buffer, new IncomingServerHandleInterpreter());
+		MessageReadingService service = new MessageReadingService(stream, buffer);
 		service.run();
 		
 		assertEquals(0, buffer.size());

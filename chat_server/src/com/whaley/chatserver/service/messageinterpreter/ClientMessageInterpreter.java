@@ -2,21 +2,21 @@ package com.whaley.chatserver.service.messageinterpreter;
 
 public abstract class ClientMessageInterpreter {
 
-	private String delimeter;
+	private String messageDelimeter;
 	
-	protected ClientMessageInterpreter(String delimeter) {
-		if (delimeter == null) {
+	protected ClientMessageInterpreter(String messageDelimeter) {
+		if (messageDelimeter == null) {
 			throw new IllegalArgumentException("delimeter should not be null");
 		}
 		
-		this.delimeter = delimeter;
+		this.messageDelimeter = messageDelimeter;
 	}
 	
-	public abstract boolean isValidFormat(String message);
+	public abstract boolean isValidFormat(String rawMessage);
 	
-	public abstract Object extractData(String message);
+	public abstract Object extractData(String rawMessage);
 	
-	protected String[] split(String message) {
-		return message.strip().split(this.delimeter);
+	protected String[] split(String rawMessage) {
+		return rawMessage.strip().split(this.messageDelimeter);
 	}
 }

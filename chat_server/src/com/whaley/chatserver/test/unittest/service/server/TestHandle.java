@@ -48,13 +48,13 @@ public class TestHandle {
 		}
 		
 		@Override
-		public ClientEndpoint accept() throws IOException {
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
 			this.count++;
 			return new TestClientEndpoint();
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void closeServerEndpoint() throws IOException {
 			this.count = 1;
 		}
 
@@ -72,7 +72,7 @@ public class TestHandle {
 		}
 
 		@Override
-		protected void handle(ClientEndpoint client) throws IOException {
+		protected void handleClient(ClientEndpoint client) throws IOException {
 			throw new IOException();
 		}
 		

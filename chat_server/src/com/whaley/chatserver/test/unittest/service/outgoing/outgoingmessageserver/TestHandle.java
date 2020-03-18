@@ -11,9 +11,9 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
+import com.whaley.chatserver.service.data.Message;
 import com.whaley.chatserver.service.outgoing.OutgoingMessageServer;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
@@ -63,13 +63,13 @@ public class TestHandle {
 		}
 		
 		@Override
-		public ClientEndpoint accept() throws IOException {
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
 			this.count++;
 			return new TestStreamable(this.input);
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void closeServerEndpoint() throws IOException {
 			this.count = 1;
 		}
 
@@ -92,13 +92,13 @@ public class TestHandle {
 		}
 		
 		@Override
-		public ClientEndpoint accept() throws IOException {
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
 			this.count++;
 			return this.count == 1 ? new TestStreamable(this.enter) : new TestStreamable(this.exit);
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void closeServerEndpoint() throws IOException {
 			this.count = 2;
 		}
 

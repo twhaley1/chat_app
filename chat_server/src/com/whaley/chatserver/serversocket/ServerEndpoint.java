@@ -6,9 +6,9 @@ import com.whaley.chatserver.socket.ClientEndpoint;
 
 public interface ServerEndpoint {
 
-	ClientEndpoint accept() throws IOException;
+	ClientEndpoint acceptClientEndpoint() throws IOException;
 	
-	void close() throws IOException;
+	void closeServerEndpoint() throws IOException;
 	
 	boolean isClosed();
 	

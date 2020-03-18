@@ -15,12 +15,12 @@ public class TestConstructor {
 	private class TestConnectable implements ServerEndpoint {
 
 		@Override
-		public ClientEndpoint accept() throws IOException {
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
 			return null;
 		}
 
 		@Override
-		public void close() throws IOException {	
+		public void closeServerEndpoint() throws IOException {	
 		}
 
 		@Override

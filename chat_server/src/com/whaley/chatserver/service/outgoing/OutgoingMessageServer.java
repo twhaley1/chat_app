@@ -6,63 +6,66 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Collection;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
-import com.whaley.chatserver.service.outgoing.OutgoingServerHandleInterpreter.InterpretedData;
+import com.whaley.chatserver.service.data.Message;
+import com.whaley.chatserver.service.outgoing.IncomingMessageInterpreter.InterpretedData;
 import com.whaley.chatserver.service.outgoing.messagesending.MessageSendingService;
 import com.whaley.chatserver.service.outgoing.messagesending.NotifyingMessageSendingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class OutgoingMessageServer extends Server {
 
-	private SynchronizedQueue<Message> buffer;
-	private ListeningRoom room;
+	private SynchronizedQueue<Message> incomingOutgoingExchangeBuffer;
+	private ListeningClients room;
 	private MessageSendingService messageService;
-	private OutgoingServerHandleInterpreter interpreter;
+	private IncomingMessageInterpreter interpreter;
 	
-	public OutgoingMessageServer(ServerEndpoint endpoint, SynchronizedQueue<Message> buffer) {
-		super(endpoint, Runtime.getRuntime().availableProcessors());
-		if (buffer == null) {
-			throw new IllegalArgumentException("buffer should not be null");
+	public OutgoingMessageServer(ServerEndpoint serverConnection, SynchronizedQueue<Message> incomingOutgoingExchangeBuffer) {
+		super(serverConnection, Runtime.getRuntime().availableProcessors());
+		if (incomingOutgoingExchangeBuffer == null) {
+			throw new IllegalArgumentException("exchange buffer should not be null");
 		}
 		
-		this.buffer = buffer;
-		this.room = new ListeningRoom();
-		this.messageService = new NotifyingMessageSendingService(this.room, this.buffer);
-		this.interpreter = new OutgoingServerHandleInterpreter();
-		this.execute(this.messageService);
+		this.incomingOutgoingExchangeBuffer = incomingOutgoingExchangeBuffer;
+		this.room = new ListeningClients();
+		this.messageService = new NotifyingMessageSendingService(this.room, this.incomingOutgoingExchangeBuffer);
+		this.interpreter = new IncomingMessageInterpreter();
+		this.startRunning(this.messageService);
 	}
 
 	@Override
-	protected void handle(ClientEndpoint client) throws IOException {
-		String command = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
-		if (this.interpreter.isValidFormat(command)) {
-			InterpretedData data = this.interpreter.extractData(command);
-			this.performCommand(data.getCommand(), data.getParameter(), client);
+	protected void handleClient(ClientEndpoint client) throws IOException {
+		String rawMessage = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
+		if (this.interpreter.isValidFormat(rawMessage)) {
+			InterpretedData extractedData = this.interpreter.extractData(rawMessage);
+			this.performCommand(extractedData.getCommand().toLowerCase(), extractedData.getParameter().toLowerCase(), client);
 		}
 	}
 	
 	private void performCommand(String command, String parameter, ClientEndpoint client) throws IOException {
-		if (command.toLowerCase().equals("enter")) {
-			this.room.assignListener(parameter, new PrintStream(client.getOutputStream()));
-		} else if (command.toLowerCase().equals("leave")) {
-			this.room.removeListener(parameter);
-		} else {
-			System.err.println("Invalid Command Syntax From " + client.getInetAddress());
+		switch (command) {
+			case IncomingMessageInterpreter.ENTER_COMMAND:
+				this.room.addClient(parameter, new PrintStream(client.getOutputStream()));
+				break;
+			case IncomingMessageInterpreter.LEAVE_COMMAND:
+				this.room.removeClient(parameter);
+				break;
+			default:
+				System.err.println("Invalid Command Syntax From " + client.getInetAddress());
 		}
 	}
 
 	@Override
 	public void closeServer() {
-		this.messageService.shutdown();
+		this.messageService.closeSendingService();
 		super.closeServer();
-		this.room.kickListeners();
+		this.room.kickClients();
 	}
 	
 	public Collection<String> getUsernamesInRoom() {
-		return this.room.getListeningUsernames();
+		return this.room.getListeningClientUsernames();
 	}
 
 }

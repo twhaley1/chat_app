@@ -11,12 +11,11 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
+import com.whaley.chatserver.service.data.Message;
 import com.whaley.chatserver.service.incoming.IncomingMessageServer;
-import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter;
 import com.whaley.chatserver.service.incoming.messagereading.MessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
@@ -66,13 +65,13 @@ public class TestHandle {
 		}
 		
 		@Override
-		public ClientEndpoint accept() throws IOException {
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
 			this.count++;
 			return new TestClientEndpoint(this.clientMessage);
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void closeServerEndpoint() throws IOException {
 			this.count = 1;
 		}
 
@@ -90,8 +89,8 @@ public class TestHandle {
 		}
 
 		@Override
-		protected Runnable createReadingService(ClientEndpoint client) {
-			return new MessageReadingService(client, this.getBuffer(), new IncomingServerHandleInterpreter());
+		protected MessageReadingService createReadingService(ClientEndpoint client) {
+			return new MessageReadingService(client, this.getIncomingOutgoingExchangeBuffer());
 		}
 	}
 	
@@ -103,8 +102,8 @@ public class TestHandle {
 		server.closeServer();
 		Message addedMessage = buffer.dequeue();
 		assertAll(() -> assertEquals("twhal", addedMessage.getUsername()),
-				() -> assertEquals("Hey, How are you!?", addedMessage.getContent()),
-				() -> assertEquals(9324890234L, addedMessage.getTimestamp()));
+				() -> assertEquals("Hey, How are you!?", addedMessage.getMessageContent()),
+				() -> assertEquals(9324890234L, addedMessage.getTimeSentMillis()));
 	}
 	
 	@Test
@@ -115,8 +114,8 @@ public class TestHandle {
 		server.closeServer();
 		Message addedMessage = buffer.dequeue();
 		assertAll(() -> assertEquals("twhal", addedMessage.getUsername()),
-				() -> assertEquals("Hey, How are you!?", addedMessage.getContent()),
-				() -> assertEquals(9324890234L, addedMessage.getTimestamp()));
+				() -> assertEquals("Hey, How are you!?", addedMessage.getMessageContent()),
+				() -> assertEquals(9324890234L, addedMessage.getTimeSentMillis()));
 	}
 	
 	@Test

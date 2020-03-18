@@ -9,9 +9,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
-import com.whaley.chatserver.service.outgoing.ListeningRoom;
+import com.whaley.chatserver.service.data.Message;
+import com.whaley.chatserver.service.outgoing.ListeningClients;
 import com.whaley.chatserver.service.outgoing.messagesending.MessageSendingService;
 
 public class TestRun {
@@ -20,7 +20,7 @@ public class TestRun {
 
 		private int count;
 		
-		public TestMessageSendingService(ListeningRoom room, SynchronizedQueue<Message> buffer) {
+		public TestMessageSendingService(ListeningClients room, SynchronizedQueue<Message> buffer) {
 			super(room, buffer);
 			this.count = 0;
 		}
@@ -31,9 +31,9 @@ public class TestRun {
 		}
 
 		@Override
-		protected List<Message> dequeueMessages() {
+		protected List<Message> dequeueMessageBuffer() {
 			this.count++;
-			return super.dequeueMessages();
+			return super.dequeueMessageBuffer();
 		}
 		
 	}
@@ -42,7 +42,7 @@ public class TestRun {
 
 		private int count;
 		
-		public TestEmptyBufferMessageSendingService(ListeningRoom room, SynchronizedQueue<Message> buffer) {
+		public TestEmptyBufferMessageSendingService(ListeningClients room, SynchronizedQueue<Message> buffer) {
 			super(room, buffer);
 			this.count = 0;
 		}
@@ -53,8 +53,8 @@ public class TestRun {
 		}
 
 		@Override
-		public boolean containsMessages() {
-			boolean result = super.containsMessages();
+		public boolean bufferContainsMessages() {
+			boolean result = super.bufferContainsMessages();
 			this.count++;
 			return result;
 		}
@@ -63,9 +63,9 @@ public class TestRun {
 	
 	@Test
 	public void testHandlesNullMessage() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		OutputStream output = new ByteArrayOutputStream();
-		room.assignListener("twhal", new PrintStream(output));
+		room.addClient("twhal", new PrintStream(output));
 		
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		buffer.enqueue(null);
@@ -80,9 +80,9 @@ public class TestRun {
 	
 	@Test
 	public void testHandlesEmptyBuffer() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		OutputStream output = new ByteArrayOutputStream();
-		room.assignListener("twhal", new PrintStream(output));
+		room.addClient("twhal", new PrintStream(output));
 		
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		
@@ -95,9 +95,9 @@ public class TestRun {
 
 	@Test
 	public void testHandlesSingleItemBuffer() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		OutputStream output = new ByteArrayOutputStream();
-		room.assignListener("twhal", new PrintStream(output));
+		room.addClient("twhal", new PrintStream(output));
 		
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		buffer.enqueue(new Message("twhal", "Hey, How are you", 1));
@@ -112,9 +112,9 @@ public class TestRun {
 	
 	@Test
 	public void testHandlesMultiItemBuffer() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		OutputStream output = new ByteArrayOutputStream();
-		room.assignListener("twhal", new PrintStream(output));
+		room.addClient("twhal", new PrintStream(output));
 		
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		buffer.enqueue(new Message("twhal", "Hey, How are you", 1));
@@ -131,11 +131,11 @@ public class TestRun {
 	
 	@Test
 	public void testMultiClientSingleItemBuffer() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		OutputStream twhalOutput = new ByteArrayOutputStream();
 		OutputStream jbobOutput = new ByteArrayOutputStream();
-		room.assignListener("twhal", new PrintStream(twhalOutput));
-		room.assignListener("jbob", new PrintStream(jbobOutput));
+		room.addClient("twhal", new PrintStream(twhalOutput));
+		room.addClient("jbob", new PrintStream(jbobOutput));
 		
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		buffer.enqueue(new Message("twhal", "Hey, How are you", 1));
@@ -151,11 +151,11 @@ public class TestRun {
 	
 	@Test
 	public void testMultiClientMultiItemBuffer() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		OutputStream twhalOutput = new ByteArrayOutputStream();
 		OutputStream jbobOutput = new ByteArrayOutputStream();
-		room.assignListener("twhal", new PrintStream(twhalOutput));
-		room.assignListener("jbob", new PrintStream(jbobOutput));
+		room.addClient("twhal", new PrintStream(twhalOutput));
+		room.addClient("jbob", new PrintStream(jbobOutput));
 		
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
 		buffer.enqueue(new Message("twhal", "Hey, How are you", 1));

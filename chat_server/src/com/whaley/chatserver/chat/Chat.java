@@ -6,39 +6,40 @@ public class Chat {
 
 	private String title;
 	
-	private Server incoming;
-	private Server outgoing;
+	private Server incomingMessageServer;
+	private Server outgoingMessageServer;
 	
-	public Chat(String title, Server incoming, Server outgoing) {
+	public Chat(String title, Server incomingMessageServer, Server outgoingMessageServer) {
 		if (title == null) {
 			throw new IllegalArgumentException("title should not be null");
 		}
-		if (incoming == null) {
+		if (incomingMessageServer == null) {
 			throw new IllegalArgumentException("incoming server should not be null");
 		}
-		if (outgoing == null) {
+		if (outgoingMessageServer == null) {
 			throw new IllegalArgumentException("outgoing server should not be null");
 		}
 		
 		this.title = title;
-		this.incoming = incoming;
-		this.outgoing = outgoing;
+		this.incomingMessageServer = incomingMessageServer;
+		this.outgoingMessageServer = outgoingMessageServer;
 	}
 	
-	public void begin() throws InterruptedException {
+	public void startChat() throws InterruptedException {
 		System.out.println("Starting Services For " + this.title + ".");
 		
-		Thread incomingThread = new Thread(this.incoming);
-		Thread outgoingThread = new Thread(this.outgoing);
-		incomingThread.start();
-		outgoingThread.start();
+		Thread incomingMessageServerThread = new Thread(this.incomingMessageServer);
+		Thread outgoingMessageServerThread = new Thread(this.outgoingMessageServer);
 		
-		incomingThread.join();
-		outgoingThread.join();
+		incomingMessageServerThread.start();
+		outgoingMessageServerThread.start();
+		
+		incomingMessageServerThread.join();
+		outgoingMessageServerThread.join();
 	}
 	
-	public void end() {
-		this.incoming.closeServer();
-		this.outgoing.closeServer();
+	public void endChat() {
+		this.incomingMessageServer.closeServer();
+		this.outgoingMessageServer.closeServer();
 	}
 }

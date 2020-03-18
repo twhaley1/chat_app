@@ -19,12 +19,12 @@ public class ServerSocketEndpoint implements ServerEndpoint {
 	}
 
 	@Override
-	public ClientEndpoint accept() throws IOException {
+	public ClientEndpoint acceptClientEndpoint() throws IOException {
 		return new ClientSocketEndpoint(this.socket.accept());
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void closeServerEndpoint() throws IOException {
 		this.socket.close();
 	}
 

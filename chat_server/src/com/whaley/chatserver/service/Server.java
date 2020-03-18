@@ -10,23 +10,25 @@ import com.whaley.chatserver.socket.ClientEndpoint;
 
 public abstract class Server implements Runnable {
 	
-	private ExecutorService pool;
-	private ServerEndpoint serverEndpoint;
+	private static final int MINIMUM_NUMBER_OF_THREADS = 1;
 	
-	protected Server(ServerEndpoint serverEndpoint, int numberOfThreads) {
-		if (serverEndpoint == null) {
-			throw new IllegalArgumentException("server endpoint should not be null");
+	private ExecutorService threadPool;
+	private ServerEndpoint serverConnection;
+	
+	protected Server(ServerEndpoint serverConnection, int numberOfThreads) {
+		if (serverConnection == null) {
+			throw new IllegalArgumentException("server connection should not be null");
 		}
-		if (numberOfThreads < 1) {
+		if (numberOfThreads < MINIMUM_NUMBER_OF_THREADS) {
 			throw new IllegalArgumentException("number of threads should not be less than one");
 		}
 		
-		this.pool = Executors.newFixedThreadPool(numberOfThreads);
-		this.serverEndpoint = serverEndpoint;
+		this.threadPool = Executors.newFixedThreadPool(numberOfThreads);
+		this.serverConnection = serverConnection;
 	}
 	
 	@Override
-	public final void run() {
+	public void run() {
 		try {
 			this.startServer();
 		} catch (IOException e) {
@@ -35,33 +37,33 @@ public abstract class Server implements Runnable {
 	}
 
 	private void startServer() throws IOException {
-		while (!this.serverEndpoint.isClosed()) {
-			ClientEndpoint clientEndpoint = this.serverEndpoint.accept();
+		while (!this.serverConnection.isClosed()) {
+			ClientEndpoint clientConnection = this.serverConnection.acceptClientEndpoint();
 			try {
-				this.handle(clientEndpoint);
+				this.handleClient(clientConnection);
 			} catch (IOException e) {
-				System.err.println(clientEndpoint.getInetAddress() + ": Client Endpoint Closed.");
+				System.err.println(clientConnection.getInetAddress() + ": Client Endpoint Closed.");
 			}
 		}
 	}
 	
-	protected abstract void handle(ClientEndpoint client) throws IOException;
+	protected abstract void handleClient(ClientEndpoint client) throws IOException;
 	
 	public void closeServer() {
 		try {
-			this.pool.awaitTermination(50, TimeUnit.MILLISECONDS);
-			this.serverEndpoint.close();
+			this.threadPool.awaitTermination(50, TimeUnit.MILLISECONDS);
+			this.serverConnection.closeServerEndpoint();
 		} catch (IOException | InterruptedException e) {
 			System.err.println("An IOException Was Thrown When Closing Down A Server.");
 		}
 	}
 	
-	public final boolean isClosed() {
-		return this.serverEndpoint.isClosed();
+	public boolean isClosed() {
+		return this.serverConnection.isClosed();
 	}
 	
-	protected void execute(Runnable task) {
-		this.pool.execute(task);
+	protected void startRunning(Runnable task) {
+		this.threadPool.execute(task);
 	}
 	
 }

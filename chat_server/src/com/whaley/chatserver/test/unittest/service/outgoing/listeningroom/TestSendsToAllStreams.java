@@ -8,20 +8,20 @@ import java.io.PrintStream;
 
 import org.junit.jupiter.api.Test;
 
-import com.whaley.chatserver.data.Message;
-import com.whaley.chatserver.service.outgoing.ListeningRoom;
+import com.whaley.chatserver.service.data.Message;
+import com.whaley.chatserver.service.outgoing.ListeningClients;
 
 public class TestSendsToAllStreams {
 
 	@Test
 	public void testSendsToAllStreams() {
-		ListeningRoom room = new ListeningRoom();
+		ListeningClients room = new ListeningClients();
 		OutputStream twhalOs = new ByteArrayOutputStream();
 		OutputStream jbobOs = new ByteArrayOutputStream();
-		room.assignListener("twhal", new PrintStream(twhalOs));
-		room.assignListener("jbob", new PrintStream(jbobOs));
+		room.addClient("twhal", new PrintStream(twhalOs));
+		room.addClient("jbob", new PrintStream(jbobOs));
 		
-		room.sendToListeners(new Message("twhal", "I love turkey", 1243213));
+		room.sendToClients(new Message("twhal", "I love turkey", 1243213));
 		
 		assertAll(() -> assertEquals("twhal: I love turkey" + System.lineSeparator(), twhalOs.toString()),
 				() -> assertEquals("twhal: I love turkey" + System.lineSeparator(), jbobOs.toString()));

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 
-public class TestEnqueue {
+public class TestOperations {
 
 	private volatile Integer singleEnqueueTestNumber = null;
 	private volatile Integer transferTestNumber = null;

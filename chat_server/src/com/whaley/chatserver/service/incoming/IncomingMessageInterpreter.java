@@ -1,15 +1,15 @@
 package com.whaley.chatserver.service.incoming;
 
-import com.whaley.chatserver.data.Message;
+import com.whaley.chatserver.service.data.Message;
 import com.whaley.chatserver.service.messageinterpreter.ClientMessageInterpreter;
 
-public class IncomingServerHandleInterpreter extends ClientMessageInterpreter {
+public class IncomingMessageInterpreter extends ClientMessageInterpreter {
 
-	private static final Character DELIMETER = (char) 29;
-	private static final int NUMBER_OF_INPUTS = 3;
+	private static final Character MESSAGE_DELIMETER = (char) 29;
+	private static final int EXPECTED_PIECES_OF_DATA = 3;
 	
-	public IncomingServerHandleInterpreter() {
-		super(DELIMETER.toString());
+	public IncomingMessageInterpreter() {
+		super(MESSAGE_DELIMETER.toString());
 	}
 
 	@Override
@@ -18,7 +18,7 @@ public class IncomingServerHandleInterpreter extends ClientMessageInterpreter {
 			return false;
 		}
 		String[] sections = this.split(message);
-		if (sections.length != NUMBER_OF_INPUTS) {
+		if (sections.length != EXPECTED_PIECES_OF_DATA) {
 			return false;
 		}
 		String username = sections[0].strip();

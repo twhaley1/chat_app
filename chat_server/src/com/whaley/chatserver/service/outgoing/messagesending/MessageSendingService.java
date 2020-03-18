@@ -2,39 +2,39 @@ package com.whaley.chatserver.service.outgoing.messagesending;
 
 import java.util.List;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
-import com.whaley.chatserver.service.outgoing.ListeningRoom;
+import com.whaley.chatserver.service.data.Message;
+import com.whaley.chatserver.service.outgoing.ListeningClients;
 
 public class MessageSendingService implements Runnable {
 
-	private ListeningRoom room;
-	private SynchronizedQueue<Message> buffer;
+	private ListeningClients room;
+	private SynchronizedQueue<Message> incomingOutgoingExchangeBuffer;
 	
 	private volatile boolean isRunning;
 	
-	public MessageSendingService(ListeningRoom room, SynchronizedQueue<Message> buffer) {
+	public MessageSendingService(ListeningClients room, SynchronizedQueue<Message> incomingOutgoingExchangeBuffer) {
 		if (room == null) {
 			throw new IllegalArgumentException("room should not be null");
 		}
-		if (buffer == null) {
+		if (incomingOutgoingExchangeBuffer == null) {
 			throw new IllegalArgumentException("buffer should not be null");
 		}
 		
 		this.room = room;
-		this.buffer = buffer;
+		this.incomingOutgoingExchangeBuffer = incomingOutgoingExchangeBuffer;
 		this.isRunning = false;
 	}
 	
 	@Override
-	public final void run() {
+	public void run() {
 		this.isRunning = true;
 		while (this.isRunning()) {
-			if (this.containsMessages()) {
-				List<Message> bufferedItems = this.dequeueMessages();
-				for (Message message : bufferedItems) {
+			if (this.bufferContainsMessages()) {
+				List<Message> messages = this.dequeueMessageBuffer();
+				for (Message message : messages) {
 					if (message != null) {
-						this.room.sendToListeners(message);
+						this.room.sendToClients(message);
 					}
 				}
 			}
@@ -45,19 +45,19 @@ public class MessageSendingService implements Runnable {
 		return this.isRunning;
 	}
 	
-	public boolean containsMessages() {
-		return !this.buffer.isEmpty();
+	public boolean bufferContainsMessages() {
+		return !this.incomingOutgoingExchangeBuffer.isEmpty();
 	}
 	
-	protected List<Message> dequeueMessages() {
-		return this.buffer.transfer();
+	protected List<Message> dequeueMessageBuffer() {
+		return this.incomingOutgoingExchangeBuffer.transfer();
 	}
 	
-	protected final SynchronizedQueue<Message> getBuffer() {
-		return this.buffer;
+	protected final SynchronizedQueue<Message> getIncomingOutgoingExchangeBuffer() {
+		return this.incomingOutgoingExchangeBuffer;
 	}
 	
-	public void shutdown() {
+	public void closeSendingService() {
 		this.isRunning = false;
 	}
 	

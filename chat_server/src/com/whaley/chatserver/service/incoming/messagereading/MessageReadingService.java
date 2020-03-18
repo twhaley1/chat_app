@@ -3,60 +3,57 @@ package com.whaley.chatserver.service.incoming.messagereading;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
-import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter;
-import com.whaley.chatserver.service.incoming.IncomingServerHandleInterpreter.InterpretedData;
+import com.whaley.chatserver.service.data.Message;
+import com.whaley.chatserver.service.incoming.IncomingMessageInterpreter;
+import com.whaley.chatserver.service.incoming.IncomingMessageInterpreter.InterpretedData;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class MessageReadingService implements Runnable {
 
-	private ClientEndpoint client;
-	private SynchronizedQueue<Message> buffer;
-	private IncomingServerHandleInterpreter interpreter;
+	private ClientEndpoint clientConnection;
+	private SynchronizedQueue<Message> incomingOutgoingExchangeBuffer;
+	private IncomingMessageInterpreter messageInterpreter;
 	
-	public MessageReadingService(ClientEndpoint client, SynchronizedQueue<Message> buffer, IncomingServerHandleInterpreter interpreter) {
-		if (client == null) {
+	public MessageReadingService(ClientEndpoint clientConnection, SynchronizedQueue<Message> incomingOutgoingExchangeBuffer) {
+		if (clientConnection == null) {
 			throw new IllegalArgumentException("client should not be null");
 		}
-		if (buffer == null) {
+		if (incomingOutgoingExchangeBuffer == null) {
 			throw new IllegalArgumentException("buffer should not be null");
 		}
-		if (interpreter == null) {
-			throw new IllegalArgumentException("interpreter should not be null");
-		}
 		
-		this.client = client;
-		this.buffer = buffer;
-		this.interpreter = interpreter;
+		this.clientConnection = clientConnection;
+		this.incomingOutgoingExchangeBuffer = incomingOutgoingExchangeBuffer;
+		this.messageInterpreter = new IncomingMessageInterpreter();
 	}
 	
 	@Override
 	public void run() {
-		try (InputStreamReader incomingMessages = new InputStreamReader(this.client.getInputStream());
-				PrintStream outgoingMessages = new PrintStream(this.client.getOutputStream());
-				BufferedReader buffer = new BufferedReader(incomingMessages)) {
-			String message = buffer.readLine();
-			if (this.interpreter.isValidFormat(message)) {
-				InterpretedData data = this.interpreter.extractData(message);
-				Message messageData = data.getMessage();
-				this.enqueueMessage(messageData);
-				System.out.println("Message Received - " + this.client.getInetAddress() + ":" + messageData.getUsername() + " - " + messageData.getContent());
+		try (InputStreamReader fromClient = new InputStreamReader(this.clientConnection.getInputStream());
+				BufferedReader fromClientBuffer = new BufferedReader(fromClient)) {
+			
+			String rawMessageFromClient = fromClientBuffer.readLine();
+			if (this.messageInterpreter.isValidFormat(rawMessageFromClient)) {
+				InterpretedData extractedData = this.messageInterpreter.extractData(rawMessageFromClient);
+				Message message = extractedData.getMessage();
+				
+				System.out.println("Message Received - " + this.clientConnection.getInetAddress() + ":" + message.getUsername() + " - " + message.getMessageContent());
+				this.enqueueOnExchangeBuffer(message);
 			}
-			this.client.close();
+			this.clientConnection.close();
 		} catch (IOException | InterruptedException e) {
-			System.err.println(this.client.getInetAddress() + ": Error - Input/Output Stream Is Closed");
+			System.err.println(this.clientConnection.getInetAddress() + ": Error - Input/Output Stream Is Closed");
 		} 
 	}
 	
-	protected void enqueueMessage(Message data) throws InterruptedException {
-		this.buffer.enqueue(data);
+	protected void enqueueOnExchangeBuffer(Message data) throws InterruptedException {
+		this.incomingOutgoingExchangeBuffer.enqueue(data);
 	}
 	
-	protected SynchronizedQueue<Message> getBuffer() {
-		return this.buffer;
+	protected SynchronizedQueue<Message> getIncomingOutgoingExchangeBuffer() {
+		return this.incomingOutgoingExchangeBuffer;
 	}
 
 }

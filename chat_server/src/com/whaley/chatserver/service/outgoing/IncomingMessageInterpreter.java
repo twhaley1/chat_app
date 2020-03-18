@@ -6,17 +6,21 @@ import java.util.Collection;
 
 import com.whaley.chatserver.service.messageinterpreter.ClientMessageInterpreter;
 
-public class OutgoingServerHandleInterpreter extends ClientMessageInterpreter {
+public class IncomingMessageInterpreter extends ClientMessageInterpreter {
 
-	private static final int NUMBER_OF_INPUTS = 2;
+	public static final String LEAVE_COMMAND = "leave";
+	public static final String ENTER_COMMAND = "enter";
 	
-	private Collection<String> commands;
+	private static final int EXPECTED_PIECES_OF_DATA = 2;
+	private static final String MESSAGE_DELIMETER = " ";
 	
-	protected OutgoingServerHandleInterpreter() {
-		super(" ");
-		this.commands = new ArrayList<String>();
-		this.commands.add("leave");
-		this.commands.add("enter");
+	private Collection<String> validCommands;
+	
+	protected IncomingMessageInterpreter() {
+		super(MESSAGE_DELIMETER);
+		this.validCommands = new ArrayList<String>();
+		this.validCommands.add(LEAVE_COMMAND);
+		this.validCommands.add(ENTER_COMMAND);
 	}
 
 	@Override
@@ -26,9 +30,9 @@ public class OutgoingServerHandleInterpreter extends ClientMessageInterpreter {
 		}
 		
 		String[] sections = this.split(message);
-		if (sections.length == NUMBER_OF_INPUTS) {
+		if (sections.length == EXPECTED_PIECES_OF_DATA) {
 			String command = sections[0];
-			if (this.commands.contains(command.toLowerCase())) {
+			if (this.validCommands.contains(command.toLowerCase())) {
 				return true;
 			}
 		}

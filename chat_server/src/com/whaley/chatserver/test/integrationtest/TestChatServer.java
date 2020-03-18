@@ -16,46 +16,16 @@ import java.util.Queue;
 import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.chat.Chat;
-import com.whaley.chatserver.data.Message;
 import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
+import com.whaley.chatserver.service.data.Message;
 import com.whaley.chatserver.service.incoming.IncomingMessageServer;
 import com.whaley.chatserver.service.outgoing.OutgoingMessageServer;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 
 public class TestChatServer {
-	
-	private class TestIncomingMessageServerEndpoint implements ServerEndpoint {
-
-		private Queue<String> messages;
-		
-		public TestIncomingMessageServerEndpoint() {
-			this.messages = new LinkedList<String>();
-			this.messages.add("  twhal  " + ((char) 29) + " What's up mate? " + ((char) 29) + " 1");
-			this.messages.add("   jbob" + ((char) 29) + " I'm doing well" + ((char) 29) + " 2343242");
-			this.messages.add(" myikes     : Hello, there fella :");
-			this.messages.add("ff");
-		}
-		
-		@Override
-		public ClientEndpoint accept() throws IOException {
-			String message = this.messages.remove();
-			return new TestClientEndpoint(message);
-		}
-
-		@Override
-		public void close() throws IOException {
-			this.messages.clear();
-		}
-
-		@Override
-		public boolean isClosed() {
-			return this.messages.isEmpty();
-		}
-		
-	}
 	
 	private class TestClientEndpoint implements ClientEndpoint {
 
@@ -90,6 +60,88 @@ public class TestChatServer {
 		
 	}
 	
+	private static final Object waitUsersToBeAddedLock = new Object();
+	private static final Object waitOutputToFinishLock = new Object();
+	
+	private class TestIncomingServer extends IncomingMessageServer {
+
+		public TestIncomingServer(ServerEndpoint endpoint, SynchronizedQueue<Message> buffer) {
+			super(endpoint, buffer);
+		}
+
+		@Override
+		public void run() {
+			synchronized (waitUsersToBeAddedLock) {
+				try {
+					waitUsersToBeAddedLock.wait();
+				} catch (InterruptedException e) {
+					throw new RuntimeException();
+				}
+			}
+			super.run();
+			synchronized (waitOutputToFinishLock) {
+				waitOutputToFinishLock.notify();
+			}
+		}
+		
+	}
+	
+	private class TestIncomingMessageServerEndpoint implements ServerEndpoint {
+		
+		private Queue<String> messages;
+		
+		public TestIncomingMessageServerEndpoint() {
+			this.messages = new LinkedList<String>();
+			this.messages.add("  twhal  " + ((char) 29) + " What's up mate? " + ((char) 29) + " 1");
+			this.messages.add("   jbob" + ((char) 29) + " I'm doing well" + ((char) 29) + " 2343242");
+			this.messages.add(" myikes     : Hello, there fella :");
+			this.messages.add("ff");
+			this.messages.add("  kappa  " + ((char) 29) + " chicken kappa " + ((char) 29) + " 34342");
+			this.messages.add("   bobbydog" + ((char) 29) + " im bobby" + ((char) 29) + " 113");
+		}
+		
+		@Override
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
+			String message = this.messages.remove();
+			return new TestClientEndpoint(message);
+		}
+
+		@Override
+		public void closeServerEndpoint() throws IOException {
+			this.messages.clear();
+		}
+
+		@Override
+		public boolean isClosed() {
+			boolean isEmpty = this.messages.isEmpty();
+			return isEmpty;
+		}
+		
+	}
+
+	private class TestOutgoingServer extends OutgoingMessageServer {
+
+		public TestOutgoingServer(ServerEndpoint endpoint, SynchronizedQueue<Message> buffer) {
+			super(endpoint, buffer);
+		}
+
+		@Override
+		public void run() {
+			super.run();
+			synchronized (waitUsersToBeAddedLock) {
+				waitUsersToBeAddedLock.notify();
+			}
+			synchronized (waitOutputToFinishLock) {
+				try {
+					waitOutputToFinishLock.wait();
+				} catch (InterruptedException e) {
+					throw new RuntimeException();
+				}
+			}
+		}
+		
+	}
+	
 	private class TestOutgoingMessageServerEndpoint implements ServerEndpoint {
 
 		private Queue<String> users;
@@ -100,12 +152,14 @@ public class TestChatServer {
 			this.users.add("  eNter  twhal ");
 			this.users.add(" ENTER   jbob");
 			this.users.add("enteR myikes  ");
+			this.users.add(" enter kappa");
+			this.users.add(" enter bobbydog");
 			
 			this.outputs = new ArrayList<OutputStream>();
 		}
 		
 		@Override
-		public ClientEndpoint accept() throws IOException {
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
 			String username = this.users.remove();
 			ClientEndpoint endpoint = new TestClientEndpoint(username);
 			this.outputs.add(endpoint.getOutputStream());
@@ -113,8 +167,8 @@ public class TestChatServer {
 		}
 
 		@Override
-		public void close() throws IOException {
-			this.users.clear();
+		public void closeServerEndpoint() throws IOException {
+			this.users.clear();	
 		}
 
 		@Override
@@ -130,14 +184,14 @@ public class TestChatServer {
 	@Test
 	public void testMessageExchange() throws InterruptedException {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		Server incoming = new IncomingMessageServer(new TestIncomingMessageServerEndpoint(), buffer);
+		Server incoming = new TestIncomingServer(new TestIncomingMessageServerEndpoint(), buffer);
 		
 		TestOutgoingMessageServerEndpoint outgoingEndpoint = new TestOutgoingMessageServerEndpoint();
-		Server outgoing = new OutgoingMessageServer(outgoingEndpoint, buffer);
+		Server outgoing = new TestOutgoingServer(outgoingEndpoint, buffer);
 		
 		Chat chat = new Chat("Integration Test", incoming, outgoing);
-		chat.begin();
-		chat.end();
+		chat.startChat();
+		chat.endChat();
 		
 		List<String> sentToClients = new ArrayList<String>();
 		for (OutputStream stream : outgoingEndpoint.getOutputs()) {
@@ -145,13 +199,27 @@ public class TestChatServer {
 			sentToClients.add(output);
 		}
 		
-		assertAll(() -> assertEquals(3, sentToClients.size()),
+		assertAll(() -> assertEquals(5, sentToClients.size()),
 				() -> assertEquals(true, sentToClients.get(0).contains("twhal: What's up mate?" + System.lineSeparator())),
 				() -> assertEquals(true, sentToClients.get(0).contains("jbob: I'm doing well" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(0).contains("kappa: chicken kappa" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(0).contains("bobbydog: im bobby" + System.lineSeparator())),
 				() -> assertEquals(true, sentToClients.get(1).contains("twhal: What's up mate?" + System.lineSeparator())),
 				() -> assertEquals(true, sentToClients.get(1).contains("jbob: I'm doing well" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(1).contains("kappa: chicken kappa" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(1).contains("bobbydog: im bobby" + System.lineSeparator())),
 				() -> assertEquals(true, sentToClients.get(2).contains("twhal: What's up mate?" + System.lineSeparator())),
-				() -> assertEquals(true, sentToClients.get(2).contains("jbob: I'm doing well" + System.lineSeparator())));
+				() -> assertEquals(true, sentToClients.get(2).contains("jbob: I'm doing well" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(2).contains("kappa: chicken kappa" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(2).contains("bobbydog: im bobby" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(3).contains("twhal: What's up mate?" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(3).contains("jbob: I'm doing well" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(3).contains("kappa: chicken kappa" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(3).contains("bobbydog: im bobby" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(4).contains("twhal: What's up mate?" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(4).contains("jbob: I'm doing well" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(4).contains("kappa: chicken kappa" + System.lineSeparator())),
+				() -> assertEquals(true, sentToClients.get(4).contains("bobbydog: im bobby" + System.lineSeparator())));
 	}
 
 }

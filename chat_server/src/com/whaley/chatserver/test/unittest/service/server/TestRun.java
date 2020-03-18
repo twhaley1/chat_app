@@ -17,12 +17,12 @@ public class TestRun {
 		private boolean isClosed;
 		
 		@Override
-		public ClientEndpoint accept() throws IOException {
+		public ClientEndpoint acceptClientEndpoint() throws IOException {
 			throw new IOException();
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void closeServerEndpoint() throws IOException {
 			this.isClosed = true;
 		}
 
@@ -40,7 +40,7 @@ public class TestRun {
 		}
 
 		@Override
-		protected void handle(ClientEndpoint client) throws IOException {
+		protected void handleClient(ClientEndpoint client) throws IOException {
 		}
 		
 	}
