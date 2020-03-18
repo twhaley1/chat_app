@@ -48,7 +48,7 @@ public class SynchronizedQueue<E> {
 		}
 	}
 	
-	public synchronized List<E> transferAndNotify() {
+	public List<E> transferAndNotify() {
 		synchronized (this) {
 			List<E> items = this.transfer();
 			this.notify();
