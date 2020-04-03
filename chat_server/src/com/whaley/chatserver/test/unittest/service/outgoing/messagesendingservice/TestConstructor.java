@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.outgoing.ListeningClients;
-import com.whaley.chatserver.service.outgoing.messagesending.MessageSendingService;
+import com.whaley.chatserver.service.outgoingmessages.ListeningClients;
+import com.whaley.chatserver.service.outgoingmessages.messagesending.MessageSendingService;
 
 public class TestConstructor {
 

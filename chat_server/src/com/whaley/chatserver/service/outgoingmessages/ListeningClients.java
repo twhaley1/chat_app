@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.outgoing;
+package com.whaley.chatserver.service.outgoingmessages;
 
 import java.io.PrintStream;
 import java.util.Collection;
@@ -19,12 +19,15 @@ public class ListeningClients {
 	public void addClient(String clientUsername, PrintStream clientListeningStream) {
 		synchronized (this) {
 			this.room.put(clientUsername, clientListeningStream);
+			System.out.println(clientUsername + ": will receive all incoming messages");
 		}
 	}
 	
 	public void removeClient(String clientUsername) {
 		synchronized (this) {
-			this.room.remove(clientUsername);
+			PrintStream connection = this.room.remove(clientUsername);
+			connection.close();
+			System.out.println(clientUsername + " will no longer receive incoming messages");
 		}
 	}
 	

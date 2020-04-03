@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.outgoing;
+package com.whaley.chatserver.service.outgoingmessages;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,9 +10,9 @@ import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.outgoing.IncomingMessageInterpreter.InterpretedData;
-import com.whaley.chatserver.service.outgoing.messagesending.MessageSendingService;
-import com.whaley.chatserver.service.outgoing.messagesending.NotifyingMessageSendingService;
+import com.whaley.chatserver.service.outgoingmessages.IncomingMessageInterpreter.InterpretedData;
+import com.whaley.chatserver.service.outgoingmessages.messagesending.MessageSendingService;
+import com.whaley.chatserver.service.outgoingmessages.messagesending.NotifyingMessageSendingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class OutgoingMessageServer extends Server {
@@ -22,14 +22,14 @@ public class OutgoingMessageServer extends Server {
 	private MessageSendingService messageService;
 	private IncomingMessageInterpreter interpreter;
 	
-	public OutgoingMessageServer(ServerEndpoint serverConnection, SynchronizedQueue<Message> incomingOutgoingExchangeBuffer) {
+	public OutgoingMessageServer(ServerEndpoint serverConnection, SynchronizedQueue<Message> incomingOutgoingExchangeBuffer, ListeningClients room) {
 		super(serverConnection, Runtime.getRuntime().availableProcessors());
 		if (incomingOutgoingExchangeBuffer == null) {
 			throw new IllegalArgumentException("exchange buffer should not be null");
 		}
 		
 		this.incomingOutgoingExchangeBuffer = incomingOutgoingExchangeBuffer;
-		this.room = new ListeningClients();
+		this.room = room;
 		this.messageService = new NotifyingMessageSendingService(this.room, this.incomingOutgoingExchangeBuffer);
 		this.interpreter = new IncomingMessageInterpreter();
 		this.startRunning(this.messageService);

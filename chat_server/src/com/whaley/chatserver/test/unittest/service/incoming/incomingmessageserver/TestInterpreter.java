@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.incoming.IncomingMessageInterpreter;
-import com.whaley.chatserver.service.incoming.IncomingMessageInterpreter.InterpretedData;
+import com.whaley.chatserver.service.incomingmessages.IncomingMessageInterpreter;
+import com.whaley.chatserver.service.incomingmessages.IncomingMessageInterpreter.InterpretedData;
 
 public class TestInterpreter {
 

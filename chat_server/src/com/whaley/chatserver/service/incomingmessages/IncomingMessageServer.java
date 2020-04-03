@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.incoming;
+package com.whaley.chatserver.service.incomingmessages;
 
 import java.io.IOException;
 
@@ -6,8 +6,8 @@ import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.incoming.messagereading.MessageReadingService;
-import com.whaley.chatserver.service.incoming.messagereading.WaitingMessageReadingService;
+import com.whaley.chatserver.service.incomingmessages.messagereading.MessageReadingService;
+import com.whaley.chatserver.service.incomingmessages.messagereading.WaitingMessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class IncomingMessageServer extends Server {

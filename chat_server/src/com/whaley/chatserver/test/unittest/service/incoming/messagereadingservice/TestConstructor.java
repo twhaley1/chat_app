@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.incoming.messagereading.MessageReadingService;
+import com.whaley.chatserver.service.incomingmessages.messagereading.MessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class TestConstructor {

@@ -1,10 +1,10 @@
-package com.whaley.chatserver.service.outgoing.messagesending;
+package com.whaley.chatserver.service.outgoingmessages.messagesending;
 
 import java.util.List;
 
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.outgoing.ListeningClients;
+import com.whaley.chatserver.service.outgoingmessages.ListeningClients;
 
 public class NotifyingMessageSendingService extends MessageSendingService {
 

@@ -14,7 +14,8 @@ import org.junit.jupiter.api.Test;
 import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.outgoing.OutgoingMessageServer;
+import com.whaley.chatserver.service.outgoingmessages.ListeningClients;
+import com.whaley.chatserver.service.outgoingmessages.OutgoingMessageServer;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class TestHandle {
@@ -111,7 +112,7 @@ public class TestHandle {
 	@Test
 	public void testAddsCorrectSyntax() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("enter twhal"), buffer);
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("enter twhal"), buffer, new ListeningClients());
 		
 		server.run();
 		int size = server.getUsernamesInRoom().size();
@@ -125,7 +126,7 @@ public class TestHandle {
 	@Test
 	public void testAddsCorrectSyntaxCaseInsensitive() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("EnTeR twhal"), buffer);
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("EnTeR twhal"), buffer, new ListeningClients());
 		
 		server.run();
 		int size = server.getUsernamesInRoom().size();
@@ -139,7 +140,7 @@ public class TestHandle {
 	@Test
 	public void testAddsCorrectSyntaxTrimmingExtraSpace() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("     enter    twhal        "), buffer);
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("     enter    twhal        "), buffer, new ListeningClients());
 		
 		server.run();
 		int size = server.getUsernamesInRoom().size();
@@ -153,7 +154,7 @@ public class TestHandle {
 	@Test
 	public void testUnknownCommand() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("jbob twhal"), buffer);
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestSingleCommandServerEndpoint("jbob twhal"), buffer, new ListeningClients());
 		
 		server.run();
 		int size = server.getUsernamesInRoom().size();
@@ -165,7 +166,7 @@ public class TestHandle {
 	@Test
 	public void testLeavesCorrectSyntax() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		OutgoingMessageServer server = new OutgoingMessageServer(new TestDualCommandServerEndpoint("enter twhal", "leave twhal"), buffer);
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestDualCommandServerEndpoint("enter twhal", "leave twhal"), buffer, new ListeningClients());
 		
 		server.run();
 		int size = server.getUsernamesInRoom().size();
@@ -179,7 +180,7 @@ public class TestHandle {
 	@Test
 	public void testLeaveOnUnknownUsername() {
 		SynchronizedQueue<Message> buffer = new SynchronizedQueue<Message>();
-		OutgoingMessageServer server = new OutgoingMessageServer(new TestDualCommandServerEndpoint("enter twhal", "leave werf"), buffer);
+		OutgoingMessageServer server = new OutgoingMessageServer(new TestDualCommandServerEndpoint("enter twhal", "leave werf"), buffer, new ListeningClients());
 		
 		server.run();
 		int size = server.getUsernamesInRoom().size();

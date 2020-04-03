@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.outgoing;
+package com.whaley.chatserver.service.outgoingmessages;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public class IncomingMessageInterpreter extends ClientMessageInterpreter {
 	
 	private Collection<String> validCommands;
 	
-	protected IncomingMessageInterpreter() {
+	public IncomingMessageInterpreter() {
 		super(MESSAGE_DELIMETER);
 		this.validCommands = new ArrayList<String>();
 		this.validCommands.add(LEAVE_COMMAND);

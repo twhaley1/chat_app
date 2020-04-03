@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.serversocket.ServerEndpoint;
-import com.whaley.chatserver.service.incoming.IncomingMessageServer;
+import com.whaley.chatserver.service.incomingmessages.IncomingMessageServer;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class TestConstructor {

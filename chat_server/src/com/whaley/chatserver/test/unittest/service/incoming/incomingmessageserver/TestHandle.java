@@ -15,8 +15,8 @@ import com.whaley.chatserver.serversocket.ServerEndpoint;
 import com.whaley.chatserver.service.Server;
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.incoming.IncomingMessageServer;
-import com.whaley.chatserver.service.incoming.messagereading.MessageReadingService;
+import com.whaley.chatserver.service.incomingmessages.IncomingMessageServer;
+import com.whaley.chatserver.service.incomingmessages.messagereading.MessageReadingService;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class TestHandle {

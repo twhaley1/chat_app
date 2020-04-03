@@ -7,7 +7,8 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.serversocket.ServerEndpoint;
-import com.whaley.chatserver.service.outgoing.OutgoingMessageServer;
+import com.whaley.chatserver.service.outgoingmessages.ListeningClients;
+import com.whaley.chatserver.service.outgoingmessages.OutgoingMessageServer;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class TestConstructor {
@@ -32,7 +33,7 @@ public class TestConstructor {
 	
 	@Test
 	public void testNotAllowNullBuffer() {
-		assertThrows(IllegalArgumentException.class, () -> new OutgoingMessageServer(new TestConnectable(), null));
+		assertThrows(IllegalArgumentException.class, () -> new OutgoingMessageServer(new TestConnectable(), null, new ListeningClients()));
 	}
 
 }

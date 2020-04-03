@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.incoming.messagereading;
+package com.whaley.chatserver.service.incomingmessages.messagereading;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,8 +6,8 @@ import java.io.InputStreamReader;
 
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.incoming.IncomingMessageInterpreter;
-import com.whaley.chatserver.service.incoming.IncomingMessageInterpreter.InterpretedData;
+import com.whaley.chatserver.service.incomingmessages.IncomingMessageInterpreter;
+import com.whaley.chatserver.service.incomingmessages.IncomingMessageInterpreter.InterpretedData;
 import com.whaley.chatserver.socket.ClientEndpoint;
 
 public class MessageReadingService implements Runnable {

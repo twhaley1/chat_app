@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.incoming.messagereading;
+package com.whaley.chatserver.service.incomingmessages.messagereading;
 
 import com.whaley.chatserver.service.bridge.SynchronizedQueue;
 import com.whaley.chatserver.service.data.Message;

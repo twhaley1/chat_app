@@ -1,4 +1,4 @@
-package com.whaley.chatserver.service.incoming;
+package com.whaley.chatserver.service.incomingmessages;
 
 import com.whaley.chatserver.service.data.Message;
 import com.whaley.chatserver.service.messageinterpreter.ClientMessageInterpreter;

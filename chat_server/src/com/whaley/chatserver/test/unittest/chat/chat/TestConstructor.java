@@ -45,16 +45,16 @@ public class TestConstructor {
 	
 	@Test
 	public void testNotAllowNullTitle() {
-		assertThrows(IllegalArgumentException.class, () -> new Chat(null, new TestServer(), new TestServer()));
+		assertThrows(IllegalArgumentException.class, () -> new Chat(null, new TestServer(), new TestServer(), new TestServer()));
 	}
 
 	@Test
 	public void testNotAllowNullIncomingServer() {
-		assertThrows(IllegalArgumentException.class, () -> new Chat("Hello", null, new TestServer()));
+		assertThrows(IllegalArgumentException.class, () -> new Chat("Hello", null, new TestServer(), new TestServer()));
 	}
 	
 	@Test
 	public void testNotAllowNullOutgoingServer() {
-		assertThrows(IllegalArgumentException.class, () -> new Chat("Hello", new TestServer(), null));
+		assertThrows(IllegalArgumentException.class, () -> new Chat("Hello", new TestServer(), null, new TestServer()));
 	}
 }

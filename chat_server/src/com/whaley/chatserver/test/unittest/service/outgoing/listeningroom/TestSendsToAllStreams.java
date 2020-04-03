@@ -9,7 +9,7 @@ import java.io.PrintStream;
 import org.junit.jupiter.api.Test;
 
 import com.whaley.chatserver.service.data.Message;
-import com.whaley.chatserver.service.outgoing.ListeningClients;
+import com.whaley.chatserver.service.outgoingmessages.ListeningClients;
 
 public class TestSendsToAllStreams {
 
